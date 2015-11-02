@@ -1,0 +1,17 @@
+# Vim and Emacs autosave/backup/swap files
+.*
+*.orig
+*~
+\#*#
+
+# Build products
+*.bin
+*.s19
+*.wav
+*.dsk
+*.ccc
+*.2k
+*.4k
+*.8k
+*.16k
+*.32k
