@@ -1,14 +1,85 @@
+	nam	letitsnow
+	ttl	Let it snow!
+
+PIA0D0	equ	$ff00		CoCo hardware definitions
+PIA0C0	equ	$ff01
+PIA0D1	equ	$ff02
+PIA0C1	equ	$ff03
+
+PIA1D0	equ	$ff20
+PIA1C0	equ	$ff21
+PIA1D1	equ	$ff22
+PIA1C1	equ	$ff23
+
+	org	$1c00
+
+hwinit	orcc	#$50		disable IRQ and FIRQ
+
+	clr	$ffc0		clr v0
+	clr	$ffc2		clr v1
+	clr	$ffc5		set v2
+	lda	#$c8		g3c, css=1
+	sta	$ff22		setup vdg
+
+	ldb	PIA0C0		disable hsync interrupt generation
+	andb	#$fc
+	stb	PIA0C0
+	tst	PIA0D0
+	lda	PIA0C1		enable vsync interrupt generation
+	ora	#$01
+	sta	PIA0C1
+	tst	PIA0D1
+	sync			wait for vsync interrupt
+
+	lda	#$01		init video field indicator
+	sta	vfield
+
+vblank	tst	PIA0D1
+	sync			wait for vsync interrupt
+
+	dec	vfield		flip video field indicator
+	bne	vblank1
+
+	clr	$ffc9		set video base to $0400
+	clr	$ffcc
+
+	bra	vwork
+
+vblank1	lda	#$01		reset video field indicator
+	sta	vfield
+
+	clr	$ffc8		set video base to $1000
+	clr	$ffcd
+
+vwork
+
+	ifdef MON09
+* Check for user break (development only)
+chkuart	lda	$ff69		Check for serial port activity
+	bita	#$08
+	beq	vloop
+	lda	$ff68
+	jmp	[$fffe]		Re-enter monitor
+	endif
+
+vloop	jmp	vblank
+
+*
+* Data Declarations
+*
+vfield	rmb	1
+
 	org	$0608
 snowman:
 	fcb	$05,$40
 	org	$0628
-	fcb	$1D,$D0
+	fcb	$19,$90
 	org	$0648
 	fcb	$15,$50
 	org	$0668
-	fcb	$57,$d4
+	fcb	$56,$94
 	org	$0688
-	fcb	$5d,$74
+	fcb	$59,$64
 	org	$06a8
 	fcb	$15,$50
 

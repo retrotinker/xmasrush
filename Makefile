@@ -11,7 +11,7 @@ all: $(TARGETS)
 	lwasm -9 -l -f decb -o $@ $<
 
 %.s19: %.asm
-	lwasm -9 -l -f srec -o $@ $<
+	lwasm -DMON09 -9 -l -f srec -o $@ $<
 
 %.ccc: %.asm
 	lwasm -DROM -9 -l -f raw -o $@ $<
