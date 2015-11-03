@@ -50,6 +50,15 @@ bgsetup	jsr	clrscrn		clear video buffers
 	ldu	#bartree	point to data for bare tree
 	jsr	tiledrw
 
+	clr	erase0
+	clr	erase0+1
+	clr	erase1
+	clr	erase1+1
+
+	leas	-2,s
+	clr	,s
+	clr	1,s
+
 vblank	tst	PIA0D1
 	sync			wait for vsync interrupt
 
@@ -68,13 +77,44 @@ vblank1	lda	#$01		reset video field indicator
 	clr	$ffcd
 
 vwork
-	ldx	#$208		point to offset for snowman
+	tst	vfield
+	bne	vwork2
+
+	ldx	erase0		point to offset for snowman
 	jsr	sprtera
 
-	ldx	#$208		point to offset for snowman
+	ldx	,s		point to offset for snowman
+	leax	32,x
+	cmpx	#$0b40
+	ble	vwork1
+	clr	,s
+	clr	1,s
+	ldx	,s
+
+vwork1	stx	,s
+	stx	erase0
 	ldu	#snowman	point to data for snowman
 	jsr	sprtdrw
 
+	bra	vwork4
+
+vwork2	ldx	erase1		point to offset for snowman
+	jsr	sprtera
+
+	ldx	,s		point to offset for snowman
+	leax	32,x
+	cmpx	#$0b40
+	ble	vwork3
+	clr	,s
+	clr	1,s
+	ldx	,s
+
+vwork3	stx	,s
+	stx	erase1
+	ldu	#snowman	point to data for snowman
+	jsr	sprtdrw
+
+vwork4
 	ifdef MON09
 * Check for user break (development only)
 chkuart	lda	$ff69		Check for serial port activity
@@ -211,3 +251,6 @@ bartree	fcb	$00,$80
 * Variable Declarations
 *
 vfield	rmb	1
+
+erase0	rmb	2
+erase1	rmb	2
