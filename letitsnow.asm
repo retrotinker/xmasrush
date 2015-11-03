@@ -11,7 +11,13 @@ PIA1C0	equ	$ff21
 PIA1D1	equ	$ff22
 PIA1C1	equ	$ff23
 
-	org	$1c00
+VBASE	equ	$0400
+VSIZE	equ	$0c00
+VEXTNT	equ	(2*VSIZE)
+
+START	equ	(VBASE+VEXTNT)
+
+	org	START
 
 hwinit	orcc	#$50		disable IRQ and FIRQ
 
@@ -20,6 +26,8 @@ hwinit	orcc	#$50		disable IRQ and FIRQ
 	clr	$ffc5		set v2
 	lda	#$c8		g3c, css=1
 	sta	$ff22		setup vdg
+
+	jsr	clrscrn		clear video buffers
 
 	ldb	PIA0C0		disable hsync interrupt generation
 	andb	#$fc
@@ -63,6 +71,19 @@ chkuart	lda	$ff69		Check for serial port activity
 	endif
 
 vloop	jmp	vblank
+
+*
+* clrscrn -- clear both video fields to the background color
+*
+*	D,X clobbered
+*
+clrscrn	ldx	#VBASE
+	clra
+	clrb
+clsloop	std	,x++
+	cmpx	#(VBASE+VEXTNT)
+	blt	clsloop
+	rts
 
 *
 * Data Declarations
