@@ -42,10 +42,6 @@ hwinit	orcc	#$50		disable IRQ and FIRQ
 
 bgsetup	jsr	clrscrn		clear video buffers
 
-	ldx	#$208		point to offset for snowman
-	ldu	#snowman	point to data for snowman
-	jsr	tiledrw
-
 	ldx	#$618		point to offset for xmas tree
 	ldu	#xmstree	point to data for xmas tree
 	jsr	tiledrw
@@ -72,6 +68,12 @@ vblank1	lda	#$01		reset video field indicator
 	clr	$ffcd
 
 vwork
+	ldx	#$208		point to offset for snowman
+	jsr	sprtera
+
+	ldx	#$208		point to offset for snowman
+	ldu	#snowman	point to data for snowman
+	jsr	sprtdrw
 
 	ifdef MON09
 * Check for user break (development only)
@@ -103,7 +105,7 @@ clsloop	std	,x++
 *	X -- offset of tile destination
 *	U -- pointer to tile data
 *
-*	D,X,Y clobbered
+*	D,X,Y,U clobbered
 *
 tiledrw	leax	VBASE+64,x
 	leay	VSIZE,x
@@ -125,6 +127,60 @@ tiledrw	leax	VBASE+64,x
 	pulu	d
 	std	96,x
 	std	96,y
+	rts
+
+*
+* sprtera -- erase sprite image on current video field
+*
+*	X -- offset of sprite to erase
+*
+*	D,X clobbered
+*
+sprtera	tst	vfield
+	beq	sprter1
+	leax	VBASE+64,x
+	bra	sprter2
+
+sprter1	leax	VBASE+VSIZE+64,x
+
+sprter2	clra
+	clrb
+	std	-64,x
+	std	-32,x
+	std	,x
+	std	32,x
+	std	64,x
+	std	96,x
+	rts
+
+*
+* sprtdrw -- draw sprite image on current video field
+*
+*	X -- offset of sprite to draw
+*	U -- pointer to tile data
+*
+*	D,X,U clobbered
+*
+sprtdrw	tst	vfield
+	beq	sprtdr1
+	leax	VBASE+64,x
+	bra	sprtdr2
+
+sprtdr1	leax	VBASE+VSIZE+64,x
+
+sprtdr2	pulu	d
+	std	-64,x
+	pulu	d
+	std	-32,x
+	pulu	d
+	std	,x
+	pulu	d
+	std	32,x
+	pulu	d
+	std	64,x
+	pulu	d
+	std	96,x
+	pulu	d
 	rts
 
 *
