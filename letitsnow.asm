@@ -27,8 +27,6 @@ hwinit	orcc	#$50		disable IRQ and FIRQ
 	lda	#$c8		g3c, css=1
 	sta	$ff22		setup vdg
 
-	jsr	clrscrn		clear video buffers
-
 	ldb	PIA0C0		disable hsync interrupt generation
 	andb	#$fc
 	stb	PIA0C0
@@ -41,6 +39,20 @@ hwinit	orcc	#$50		disable IRQ and FIRQ
 
 	lda	#$01		init video field indicator
 	sta	vfield
+
+bgsetup	jsr	clrscrn		clear video buffers
+
+	ldx	#$208		point to offset for snowman
+	ldu	#snowman	point to data for snowman
+	jsr	tiledrw
+
+	ldx	#$618		point to offset for xmas tree
+	ldu	#xmstree	point to data for xmas tree
+	jsr	tiledrw
+
+	ldx	#$398		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
 
 vblank	tst	PIA0D1
 	sync			wait for vsync interrupt
@@ -86,48 +98,60 @@ clsloop	std	,x++
 	rts
 
 *
+* tiledrw -- draw background tile on both video fields
+*
+*	X -- offset of tile destination
+*	U -- pointer to tile data
+*
+*	D,X,Y clobbered
+*
+tiledrw	leax	VBASE+64,x
+	leay	VSIZE,x
+	pulu	d
+	std	-64,x
+	std	-64,y
+	pulu	d
+	std	-32,x
+	std	-32,y
+	pulu	d
+	std	,x
+	std	,y
+	pulu	d
+	std	32,x
+	std	32,y
+	pulu	d
+	std	64,x
+	std	64,y
+	pulu	d
+	std	96,x
+	std	96,y
+	rts
+
+*
 * Data Declarations
 *
-vfield	rmb	1
-
-	org	$0608
-snowman:
-	fcb	$05,$40
-	org	$0628
+snowman	fcb	$05,$40
 	fcb	$19,$90
-	org	$0648
 	fcb	$15,$50
-	org	$0668
 	fcb	$56,$94
-	org	$0688
 	fcb	$59,$64
-	org	$06a8
 	fcb	$15,$50
 
-	org	$0a18
-xmastree:
-	fcb	$01,$00
-	org	$0a38
+xmstree	fcb	$01,$00
 	fcb	$05,$40
-	org	$0a58
 	fcb	$15,$50
-	org	$0a78
 	fcb	$55,$54
-	org	$0a98
 	fcb	$03,$00
-	org	$0ab8
 	fcb	$03,$00
 
-	org	$0798
-baretree:
-	fcb	$00,$80
-	org	$07b8
+bartree	fcb	$00,$80
 	fcb	$83,$00
-	org	$07d8
 	fcb	$3B,$F8
-	org	$07f8
 	fcb	$0E,$00
-	org	$0818
 	fcb	$0B,$00
-	org	$0838
 	fcb	$0E,$00
+
+*
+* Variable Declarations
+*
+vfield	rmb	1
