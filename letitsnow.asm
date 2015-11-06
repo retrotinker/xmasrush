@@ -46,7 +46,83 @@ bgsetup	jsr	clrscrn		clear video buffers
 	ldu	#xmstree	point to data for xmas tree
 	jsr	tiledrw
 
-	ldx	#$398		point to offset for bare tree
+	ldx	#$018		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$033		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$044		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$08b		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$0be		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$1a5		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$26f		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$318		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$350		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$3ac		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$567		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$614		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$648		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$68e		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$6be		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$723		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$86f		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$918		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$950		point to offset for bare tree
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw
+
+	ldx	#$9ac		point to offset for bare tree
 	ldu	#bartree	point to data for bare tree
 	jsr	tiledrw
 
