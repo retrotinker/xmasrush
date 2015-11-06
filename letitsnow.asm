@@ -254,3 +254,5 @@ vfield	rmb	1
 
 erase0	rmb	2
 erase1	rmb	2
+
+	end	START
