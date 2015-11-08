@@ -11,7 +11,7 @@ PIA1C0	equ	$ff21
 PIA1D1	equ	$ff22
 PIA1C1	equ	$ff23
 
-VBASE	equ	$0400
+VBASE	equ	$0e00
 VSIZE	equ	$0c00
 VEXTNT	equ	(2*VSIZE)
 
@@ -26,6 +26,14 @@ hwinit	orcc	#$50		disable IRQ and FIRQ
 	clr	$ffc5		set v2
 	lda	#$c8		g3c, css=1
 	sta	$ff22		setup vdg
+
+	clr	$ffc7		set video base to $0e00
+	clr	$ffc9
+	clr	$ffcb
+	clr	$ffcc
+	clr	$ffce
+	clr	$ffd0
+	clr	$ffd2
 
 	ldb	PIA0C0		disable hsync interrupt generation
 	andb	#$fc
@@ -141,7 +149,7 @@ vblank	tst	PIA0D1
 	dec	vfield		flip video field indicator
 	bne	vblank1
 
-	clr	$ffc9		set video base to $0400
+	clr	$ffc9		reset video base to $0e00
 	clr	$ffcc
 
 	bra	vwork
@@ -149,7 +157,7 @@ vblank	tst	PIA0D1
 vblank1	lda	#$01		reset video field indicator
 	sta	vfield
 
-	clr	$ffc8		set video base to $1000
+	clr	$ffc8		reset video base to $1a00
 	clr	$ffcd
 
 vwork
