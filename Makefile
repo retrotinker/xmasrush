@@ -2,7 +2,7 @@
 
 CFLAGS=-Wall
 
-TARGETS=letitsnow.s19 letitsnow.bin
+TARGETS=letitsnow.bin letitsnow.s19
 EXTRA=letitsnow.2k letitsnow.4k
 
 all: $(TARGETS)
