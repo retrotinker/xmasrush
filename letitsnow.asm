@@ -134,65 +134,58 @@ bgsetup	jsr	clrscrn		clear video buffers
 	ldu	#bartree	point to data for bare tree
 	jsr	tiledrw
 
-	clr	erase0
-	clr	erase0+1
-	clr	erase1
-	clr	erase1+1
+	clra
+	clrb
+	std	ersptrs
+	std	ersptrs+2
 
 	leas	-2,s
 	clr	,s
 	clr	1,s
 
-vblank	tst	PIA0D1
-	sync			wait for vsync interrupt
+vblank	tst	PIA0D1		wait for vsync interrupt
+	sync
 
-	dec	vfield		flip video field indicator
+	lda	vfield		load previous field indicator
+
+	deca			switch video field indicator
 	bne	vblank1
 
 	clr	$ffc9		reset video base to $0e00
 	clr	$ffcc
 
-	ldx	erase0		point to offset for snowman
-	jsr	sprtera
-
-	ldx	,s		point to offset for snowman
-	leax	32,x
-	cmpx	#$0b40
-	ble	vwork1
-	clr	,s
-	clr	1,s
-	ldx	,s
-
-vwork1	stx	,s
-	stx	erase0
-	ldu	#snowman	point to data for snowman
-	jsr	sprtdrw
-
-	bra	vwork4
+	bra	vblnkex
 
 vblank1	lda	#$01		reset video field indicator
-	sta	vfield
 
 	clr	$ffc8		reset video base to $1a00
 	clr	$ffcd
 
-vwork2	ldx	erase1		point to offset for snowman
-	jsr	sprtera
+vblnkex	sta	vfield		save current field indicator
 
-	ldx	,s		point to offset for snowman
-	leax	32,x
-	cmpx	#$0b40
-	ble	vwork3
-	clr	,s
-	clr	1,s
-	ldx	,s
+verase	lsla			convert to pointer offset
+	ldx	#ersptrs	use as offset into erase pointer array
+	ldx	a,x		retrieve erase pointer
+	jsr	sprtera		erase sprite
 
-vwork3	stx	,s
-	stx	erase1
+vcalc	ldx	,s		point to offset for snowman
+	leax	32,x		advance by one line
+	cmpx	#$0b40		check for lowest offset
+	ble	vcalcex		continue if not
+	clra			otherwise, reset offset
+	clrb
+	tfr	d,x
+vcalcex	stx	,s		save current snowman offset
+
+vdraw	lda	vfield		retrieve current field indicator
+	lsla			convert to pointer offset
+	ldy	#ersptrs	use as offset into erase pointer array
+	leay	a,y		retrieve erase pointer
+	stx	,y		save snowman offset to erase pointer
+
 	ldu	#snowman	point to data for snowman
-	jsr	sprtdrw
+	jsr	sprtdrw		draw snowman sprite
 
-vwork4
 	ifdef MON09
 * Check for user break (development only)
 chkuart	lda	$ff69		Check for serial port activity
@@ -330,7 +323,6 @@ bartree	fcb	$00,$80
 *
 vfield	rmb	1
 
-erase0	rmb	2
-erase1	rmb	2
+ersptrs	rmb	4
 
 	end	START
