@@ -152,18 +152,6 @@ vblank	tst	PIA0D1
 	clr	$ffc9		reset video base to $0e00
 	clr	$ffcc
 
-	bra	vwork
-
-vblank1	lda	#$01		reset video field indicator
-	sta	vfield
-
-	clr	$ffc8		reset video base to $1a00
-	clr	$ffcd
-
-vwork
-	tst	vfield
-	bne	vwork2
-
 	ldx	erase0		point to offset for snowman
 	jsr	sprtera
 
@@ -181,6 +169,12 @@ vwork1	stx	,s
 	jsr	sprtdrw
 
 	bra	vwork4
+
+vblank1	lda	#$01		reset video field indicator
+	sta	vfield
+
+	clr	$ffc8		reset video base to $1a00
+	clr	$ffcd
 
 vwork2	ldx	erase1		point to offset for snowman
 	jsr	sprtera
