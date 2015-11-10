@@ -85,28 +85,28 @@ vblank1	lda	#$01		reset video field indicator
 
 vblnkex	sta	vfield		save current field indicator
 
-verase	lsla			convert to pointer offset
-	ldx	#ersptrs	use as offset into erase pointer array
-	ldx	a,x		retrieve erase pointer
-	jsr	sprtera		erase sprite
-
-vcalc	ldx	,s		point to offset for snowman
-	leax	32,x		advance by one line
-	cmpx	#$0b40		check for lowest offset
-	ble	vcalcex		continue if not
-	clra			otherwise, reset offset
-	clrb
-	tfr	d,x
-vcalcex	stx	,s		save current snowman offset
-
-vdraw	lda	vfield		retrieve current field indicator
-	lsla			convert to pointer offset
-	ldy	#ersptrs	use as offset into erase pointer array
-	leay	a,y		retrieve erase pointer
-	stx	,y		save snowman offset to erase pointer
-
-	ldu	#snowman	point to data for snowman
-	jsr	sprtdrw		draw snowman sprite
+*verase	lsla			convert to pointer offset
+*	ldx	#ersptrs	use as offset into erase pointer array
+*	ldx	a,x		retrieve erase pointer
+*	jsr	sprtera		erase sprite
+*
+*vcalc	ldx	,s		point to offset for snowman
+*	leax	32,x		advance by one line
+*	cmpx	#$0b40		check for lowest offset
+*	ble	vcalcex		continue if not
+*	clra			otherwise, reset offset
+*	clrb
+*	tfr	d,x
+*vcalcex	stx	,s		save current snowman offset
+*
+*vdraw	lda	vfield		retrieve current field indicator
+*	lsla			convert to pointer offset
+*	ldy	#ersptrs	use as offset into erase pointer array
+*	leay	a,y		retrieve erase pointer
+*	stx	,y		save snowman offset to erase pointer
+*
+*	ldu	#snowman	point to data for snowman
+*	jsr	sprtdrw		draw snowman sprite
 
 	ifdef MON09
 * Check for user break (development only)
