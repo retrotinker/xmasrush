@@ -56,6 +56,22 @@ bgsetup	jsr	clrscrn		clear video buffers
 	ldu	#xmstree	point to data for xmas tree
 	jsr	tiledrw
 
+	ldx	#$1e5		point to offset for temporary snowman
+	ldu	#snowman	point to data for temporary snowman
+	jsr	tiledrw
+
+	ldx	#$42e		point to offset for temporary snowman
+	ldu	#snowman	point to data for temporary snowman
+	jsr	tiledrw
+
+	ldx	#$4f9		point to offset for temporary snowman
+	ldu	#snowman	point to data for temporary snowman
+	jsr	tiledrw
+
+	ldx	#$90b		point to offset for temporary snowman
+	ldu	#snowman	point to data for temporary snowman
+	jsr	tiledrw
+
 	clra
 	clrb
 	std	ersptrs
