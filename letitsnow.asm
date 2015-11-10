@@ -50,88 +50,10 @@ hwinit	orcc	#$50		disable IRQ and FIRQ
 
 bgsetup	jsr	clrscrn		clear video buffers
 
+	jsr	plfdraw		draw the playfield
+
 	ldx	#$618		point to offset for xmas tree
 	ldu	#xmstree	point to data for xmas tree
-	jsr	tiledrw
-
-	ldx	#$018		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$033		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$044		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$08b		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$0be		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$1a5		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$26f		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$318		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$350		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$3ac		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$567		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$614		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$648		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$68e		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$6be		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$723		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$86f		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$918		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$950		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
-	jsr	tiledrw
-
-	ldx	#$9ac		point to offset for bare tree
-	ldu	#bartree	point to data for bare tree
 	jsr	tiledrw
 
 	clra
@@ -295,6 +217,48 @@ sprtdr2	pulu	d
 	rts
 
 *
+* plfdraw -- draw playfield based on plyfmap data
+*
+*	D,X,Y,U clobbered
+*
+plfdraw	ldx	#$0000		init tile offset value
+	ldy	#plyfmap	init map pointer value
+	lda	#$04		init map byte width counter
+	pshs	a
+	lda	#plyfmsz	init map size counter
+	pshs	a
+
+plfloop	lda	,y+		load next byte of map data
+	ldb	#$08		init bit counter for current byte
+
+plfloo1	asla			check for tile indicator
+	bcc	plftskp
+
+	pshs	d,x,y		save important data
+	ldu	#bartree	point to data for bare tree
+	jsr	tiledrw		draw bare tree tile
+	puls	d,x,y		restore important data
+
+plftskp	leax	1,x		advance tile offset
+
+	decb			decrement bit counter
+	bne	plfloo1		process data for next bit
+
+	dec	1,s		check for end of map row
+	bne	plflxck		if not move along
+
+	lda	#$04		reset map byte widt counter
+	sta	1,s
+
+	leax	64,x		advance tile offset value two rows
+
+plflxck	dec	,s		check for end of map data
+	bne	plfloop		if not, loop
+
+	leas	2,s		clean-up stack
+	rts
+
+*
 * Data Declarations
 *
 snowman	fcb	$05,$40
@@ -317,6 +281,47 @@ bartree	fcb	$00,$80
 	fcb	$0E,$00
 	fcb	$0B,$00
 	fcb	$0E,$00
+
+plyfmap	fcb	00101010b,10101010b,10101010b,10101010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+	fcb	00100000b,00000000b,00000000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+
+	fcb	00001000b,00000000b,00000000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+	fcb	00000010b,00000000b,00000000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+
+	fcb	00000000b,10000000b,00000000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+	fcb	00000000b,00100000b,00000000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+
+	fcb	00000000b,00001000b,00000000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+	fcb	00000000b,00000000b,00000000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+
+	fcb	00000000b,00000000b,00000000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+	fcb	00000000b,00000000b,00100000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+
+	fcb	00000000b,00000000b,00001000b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+	fcb	00000000b,00000000b,00000010b,00000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+
+	fcb	00000000b,00000000b,00000000b,10000010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+	fcb	00000000b,00000000b,00000000b,00100010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+
+	fcb	00000000b,00000000b,00000000b,00001010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+	fcb	00101010b,10101010b,10101010b,10101010b
+	fcb	00000000b,00000000b,00000000b,00000000b
+plyfmsz	equ	(*-plyfmap)
 
 *
 * Variable Declarations
