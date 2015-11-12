@@ -52,23 +52,33 @@ bgsetup	jsr	clrscrn		clear video buffers
 
 	jsr	plfdraw		draw the playfield
 
-	ldx	#$675		point to offset for xmas tree
+	ldd	#$1511		point to grid offset for xmas tree
+	jsr	cvtpos
+	tfr	d,x
 	ldu	#xmstree	point to data for xmas tree
 	jsr	tiledrw
 
-	ldx	#$1e5		point to offset for temporary snowman
+	ldd	#$0505		point to grid offset for temporary snowman
+	jsr	cvtpos
+	tfr	d,x
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
-	ldx	#$42e		point to offset for temporary snowman
+	ldd	#$0e0b		point to grid offset for temporary snowman
+	jsr	cvtpos
+	tfr	d,x
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
-	ldx	#$4f9		point to offset for temporary snowman
+	ldd	#$190d		point to grid offset for temporary snowman
+	jsr	cvtpos
+	tfr	d,x
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
-	ldx	#$90b		point to offset for temporary snowman
+	ldd	#$0b18		point to grid offset for temporary snowman
+	jsr	cvtpos
+	tfr	d,x
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
@@ -146,6 +156,25 @@ clrscrn	ldx	#VBASE
 clsloop	std	,x++
 	cmpx	#(VBASE+VEXTNT)
 	blt	clsloop
+	rts
+
+*
+* cvtpos -- convert grid position to screen offset
+*
+*	D -- x- and y-coordinate (in A and B)
+*
+cvtpos	pshs	a,b
+	exg	a,b
+	clrb
+	lsra
+	rorb
+	adda	1,s
+	lsra
+	rorb
+	lsra
+	rorb
+	orb	,s
+	leas	2,s
 	rts
 
 *
@@ -237,8 +266,10 @@ sprtdr2	pulu	d
 *
 *	D,X,Y,U clobbered
 *
-plfdraw	ldx	#$0000		init tile offset value
-	ldy	#plyfmap	init map pointer value
+plfdraw	ldy	#plyfmap	init map pointer value
+	leas	-2,s		init x- and y- coordinates
+	clr	1,s
+	clr	,s
 	lda	#$04		init map byte width counter
 	pshs	a
 	lda	#plyfmsz	init map size counter
@@ -251,11 +282,14 @@ plfloo1	asla			check for tile indicator
 	bcc	plftskp
 
 	pshs	d,x,y		save important data
+	ldd	8,s		retrieve current x- and y-pos
+	jsr	cvtpos
+	tfr	d,x
 	ldu	#bartree	point to data for bare tree
 	jsr	tiledrw		draw bare tree tile
 	puls	d,x,y		restore important data
 
-plftskp	leax	1,x		advance tile offset
+plftskp	inc	2,s		advance x-pos
 
 	decb			decrement bit counter
 	bne	plfloo1		process data for next bit
@@ -266,12 +300,13 @@ plftskp	leax	1,x		advance tile offset
 	lda	#$04		reset map byte widt counter
 	sta	1,s
 
-	leax	64,x		advance tile offset value two rows
+	clr	2,s		reset x-pos
+	inc	3,s		advance y-pos
 
 plflxck	dec	,s		check for end of map data
 	bne	plfloop		if not, loop
 
-	leas	2,s		clean-up stack
+	leas	4,s		clean-up stack
 	rts
 
 *
