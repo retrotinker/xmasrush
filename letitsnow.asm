@@ -53,32 +53,22 @@ bgsetup	jsr	clrscrn		clear video buffers
 	jsr	plfdraw		draw the playfield
 
 	ldd	#$1511		point to grid offset for xmas tree
-	jsr	cvtpos
-	tfr	d,x
 	ldu	#xmstree	point to data for xmas tree
 	jsr	tiledrw
 
 	ldd	#$0505		point to grid offset for temporary snowman
-	jsr	cvtpos
-	tfr	d,x
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
 	ldd	#$0e0b		point to grid offset for temporary snowman
-	jsr	cvtpos
-	tfr	d,x
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
 	ldd	#$190d		point to grid offset for temporary snowman
-	jsr	cvtpos
-	tfr	d,x
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
 	ldd	#$0b18		point to grid offset for temporary snowman
-	jsr	cvtpos
-	tfr	d,x
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
@@ -113,23 +103,22 @@ vblnkex	sta	vfield		save current field indicator
 
 *verase	lsla			convert to pointer offset
 *	ldx	#ersptrs	use as offset into erase pointer array
-*	ldx	a,x		retrieve erase pointer
+*	ldd	a,x		retrieve erase grid offset
 *	jsr	sprtera		erase sprite
 *
-*vcalc	ldx	,s		point to offset for snowman
-*	leax	32,x		advance by one line
-*	cmpx	#$0b40		check for lowest offset
+*vcalc	ldd	,s		point to grid offset for snowman
+*	incb			advance by one line
+*	cmpb	#$1f		check for lowest grid y-offset
 *	ble	vcalcex		continue if not
-*	clra			otherwise, reset offset
-*	clrb
-*	tfr	d,x
-*vcalcex	stx	,s		save current snowman offset
+*	clrb			otherwise, reset grid y-offset
+*vcalcex	std	,s		save current snowman grid offset
 *
 *vdraw	lda	vfield		retrieve current field indicator
 *	lsla			convert to pointer offset
 *	ldy	#ersptrs	use as offset into erase pointer array
 *	leay	a,y		retrieve erase pointer
-*	stx	,y		save snowman offset to erase pointer
+*	ldd	,s		get snowman grid offset
+*	std	,y		save snowman grid offset to erase pointer
 *
 *	ldu	#snowman	point to data for snowman
 *	jsr	sprtdrw		draw snowman sprite
@@ -180,12 +169,14 @@ cvtpos	pshs	a,b
 *
 * tiledrw -- draw background tile on both video fields
 *
-*	X -- offset of tile destination
+*	D -- x- and y-coordinate (in A and B)
 *	U -- pointer to tile data
 *
 *	D,X,Y,U clobbered
 *
-tiledrw	leax	VBASE+64,x
+tiledrw	jsr	cvtpos
+	tfr	d,x
+	leax	VBASE+64,x
 	leay	VSIZE,x
 	pulu	d
 	std	-64,x
@@ -210,11 +201,13 @@ tiledrw	leax	VBASE+64,x
 *
 * sprtera -- erase sprite image on current video field
 *
-*	X -- offset of sprite to erase
+*	D -- x- and y-coordinate (in A and B)
 *
 *	D,X clobbered
 *
-sprtera	tst	vfield
+sprtera	jsr	cvtpos
+	tfr	d,x
+	tst	vfield
 	beq	sprter1
 	leax	VBASE+64,x
 	bra	sprter2
@@ -234,12 +227,14 @@ sprter2	clra
 *
 * sprtdrw -- draw sprite image on current video field
 *
-*	X -- offset of sprite to draw
+*	D -- x- and y-coordinate (in A and B)
 *	U -- pointer to tile data
 *
 *	D,X,U clobbered
 *
-sprtdrw	tst	vfield
+sprtdrw	jsr	cvtpos
+	tfr	d,x
+	tst	vfield
 	beq	sprtdr1
 	leax	VBASE+64,x
 	bra	sprtdr2
@@ -283,8 +278,6 @@ plfloo1	asla			check for tile indicator
 
 	pshs	d,x,y		save important data
 	ldd	8,s		retrieve current x- and y-pos
-	jsr	cvtpos
-	tfr	d,x
 	ldu	#bartree	point to data for bare tree
 	jsr	tiledrw		draw bare tree tile
 	puls	d,x,y		restore important data
