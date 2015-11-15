@@ -72,14 +72,11 @@ bgsetup	jsr	clrscrn		clear video buffers
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
-	clra
-	clrb
+	ldd	#$101e
 	std	ersptrs
 	std	ersptrs+2
-
 	leas	-2,s
-	clr	,s
-	clr	1,s
+	std	,s
 
 vblank	tst	PIA0D1		wait for vsync interrupt
 	sync
@@ -101,27 +98,27 @@ vblank1	lda	#$01		reset video field indicator
 
 vblnkex	sta	vfield		save current field indicator
 
-*verase	lsla			convert to pointer offset
-*	ldx	#ersptrs	use as offset into erase pointer array
-*	ldd	a,x		retrieve erase grid offset
-*	jsr	sprtera		erase sprite
-*
-*vcalc	ldd	,s		point to grid offset for snowman
+verase	lsla			convert to pointer offset
+	ldx	#ersptrs	use as offset into erase pointer array
+	ldd	a,x		retrieve erase grid offset
+	jsr	sprtera		erase sprite
+
+vcalc	ldd	,s		point to grid offset for snowman
 *	incb			advance by one line
 *	cmpb	#$1f		check for lowest grid y-offset
 *	ble	vcalcex		continue if not
 *	clrb			otherwise, reset grid y-offset
-*vcalcex	std	,s		save current snowman grid offset
-*
-*vdraw	lda	vfield		retrieve current field indicator
-*	lsla			convert to pointer offset
-*	ldy	#ersptrs	use as offset into erase pointer array
-*	leay	a,y		retrieve erase pointer
-*	ldd	,s		get snowman grid offset
-*	std	,y		save snowman grid offset to erase pointer
-*
-*	ldu	#snowman	point to data for snowman
-*	jsr	sprtdrw		draw snowman sprite
+vcalcex	std	,s		save current snowman grid offset
+
+vdraw	lda	vfield		retrieve current field indicator
+	lsla			convert to pointer offset
+	ldy	#ersptrs	use as offset into erase pointer array
+	leay	a,y		retrieve erase pointer
+	ldd	,s		get snowman grid offset
+	std	,y		save snowman grid offset to erase pointer
+
+	ldu	#player	point to data for snowman
+	jsr	sprtdrw		draw snowman sprite
 
 	ifdef MON09
 * Check for user break (development only)
@@ -325,6 +322,13 @@ bartree	fcb	$00,$80
 	fcb	$0E,$00
 	fcb	$0B,$00
 	fcb	$0E,$00
+
+player	fcb	00000010b,00000000b
+	fcb	00101010b,10100000b
+	fcb	00100010b,00100000b
+	fcb	00000010b,00000000b
+	fcb	00001000b,10000000b
+	fcb	00101000b,10100000b
 
 plyfmap	fcb	10101010b,10101010b,10101010b,10101010b
 	fcb	00000000b,00000000b,00000000b,00000000b
