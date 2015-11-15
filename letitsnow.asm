@@ -78,11 +78,13 @@ bgsetup	jsr	clrscrn		clear video buffers
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
-	ldd	#$101e
+	ldd	#$101d
 	std	ersptrs
 	std	ersptrs+2
-	leas	-2,s
+	leas	-4,s
 	std	,s
+	ldd	#player
+	std	2,s
 
 vblank	tst	PIA0D1		wait for vsync interrupt
 	sync
@@ -109,8 +111,22 @@ verase	lsla			convert to pointer offset
 	ldd	a,x		retrieve erase grid offset
 	jsr	sprtera		erase sprite
 
-vcalc	ldd	#$101d		store base position for player
+vdraw	lda	vfield		retrieve current field indicator
+	lsla			convert to pointer offset
+	ldy	#ersptrs	use as offset into erase pointer array
+	leay	a,y		retrieve erase pointer
+	ldd	,s		get snowman grid offset
+	std	,y		save snowman grid offset to erase pointer
+
+	ldu	2,s		retrieve player graphic pointer
+	jsr	sprtdrw		draw snowman sprite
+
+vcalc	jsr	inpread		read player input for next frame
+
+	ldd	#$101d		store base position for player
 	std	,s
+	ldd	#player		use default player graphic
+	std	2,s
 
 	ldb	inpflgs		test for movement right
 	andb	#INPUTRT
@@ -132,26 +148,13 @@ vcalc3	ldb	inpflgs		test for movement up
 	beq	vcalc4
 	dec	1,s		indicate up by altering position
 
-vcalc4	ldu	#player		default to player graphic
-	pshs	u
-	ldb	inpflgs		test for button push
+vcalc4	ldb	inpflgs		test for button push
 	andb	#INPUTBT
-	beq	vdraw
-	ldu	#xmstree	indicate button push by altering graphic
-	stu	,s
+	beq	vcalc5
+	ldd	#xmstree	indicate button push by altering graphic
+	std	2,s
 
-vdraw	puls	u		retrieve player graphic pointer
-
-	lda	vfield		retrieve current field indicator
-	lsla			convert to pointer offset
-	ldy	#ersptrs	use as offset into erase pointer array
-	leay	a,y		retrieve erase pointer
-	ldd	,s		get snowman grid offset
-	std	,y		save snowman grid offset to erase pointer
-
-	jsr	sprtdrw		draw snowman sprite
-
-	jsr	inpread		read player input for next frame
+vcalc5	equ	*
 
 	ifdef MON09
 * Check for user break (development only)
