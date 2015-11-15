@@ -11,6 +11,12 @@ PIA1C0	equ	$ff21
 PIA1D1	equ	$ff22
 PIA1C1	equ	$ff23
 
+INPUTRT	equ	$01
+INPUTLT	equ	$02
+INPUTUP	equ	$04
+INPUTDN	equ	$08
+INPUTBT	equ	$10
+
 VBASE	equ	$0e00
 VSIZE	equ	$0c00
 VEXTNT	equ	(2*VSIZE)
@@ -103,22 +109,49 @@ verase	lsla			convert to pointer offset
 	ldd	a,x		retrieve erase grid offset
 	jsr	sprtera		erase sprite
 
-vcalc	ldd	,s		point to grid offset for snowman
-*	incb			advance by one line
-*	cmpb	#$1f		check for lowest grid y-offset
-*	ble	vcalcex		continue if not
-*	clrb			otherwise, reset grid y-offset
-vcalcex	std	,s		save current snowman grid offset
+vcalc	ldd	#$101d		store base position for player
+	std	,s
 
-vdraw	lda	vfield		retrieve current field indicator
+	ldb	inpflgs		test for movement right
+	andb	#INPUTRT
+	beq	vcalc1
+	inc	,s		indicate right by altering position
+
+vcalc1	ldb	inpflgs		test for movement left
+	andb	#INPUTLT
+	beq	vcalc2
+	dec	,s		indicate left by altering position
+
+vcalc2	ldb	inpflgs		test for movement down
+	andb	#INPUTDN
+	beq	vcalc3
+	inc	1,s		indicate down by altering position
+
+vcalc3	ldb	inpflgs		test for movement up
+	andb	#INPUTUP
+	beq	vcalc4
+	dec	1,s		indicate up by altering position
+
+vcalc4	ldu	#player		default to player graphic
+	pshs	u
+	ldb	inpflgs		test for button push
+	andb	#INPUTBT
+	beq	vdraw
+	ldu	#xmstree	indicate button push by altering graphic
+	stu	,s
+
+vdraw	puls	u		retrieve player graphic pointer
+
+	lda	vfield		retrieve current field indicator
 	lsla			convert to pointer offset
 	ldy	#ersptrs	use as offset into erase pointer array
 	leay	a,y		retrieve erase pointer
 	ldd	,s		get snowman grid offset
 	std	,y		save snowman grid offset to erase pointer
 
-	ldu	#player	point to data for snowman
 	jsr	sprtdrw		draw snowman sprite
+
+	jsr	inpread		read player input for next frame
 
 	ifdef MON09
 * Check for user break (development only)
@@ -130,6 +163,67 @@ chkuart	lda	$ff69		Check for serial port activity
 	endif
 
 vloop	jmp	vblank
+
+*
+* inpread -- read joystick input
+*
+*	D clobbered
+*
+inpread	clrb
+
+	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	bne	inprdrl
+	ldb	#INPUTBT
+
+inprdrl	lda	#$34		read r/l axis of left joystick
+	sta	PIA0C0
+	lda	#$3d
+	sta	PIA0C1
+
+	lda	#$65		test for low value on selected axis
+	sta	PIA1D0
+	nop
+	nop
+	tst	PIA0D0
+	bpl	inprdlt
+
+	lda	#$98		test for high value on selected axis
+	sta	PIA1D0
+	nop
+	nop
+	tst	PIA0D0
+	bpl	inprdud
+
+inprdrt	orb	#INPUTRT	joystick points right
+	bra	inprdud
+
+inprdlt	orb	#INPUTLT	joystick points left
+
+inprdud	lda	#$3c		read u/d axis of left joystick
+	sta	PIA0C0
+
+	lda	#$65		test for low value on selected axis
+	sta	PIA1D0
+	nop
+	nop
+	tst	PIA0D0
+	bpl	inprdup
+
+	lda	#$98		test for high value on selected axis
+	sta	PIA1D0
+	nop
+	nop
+	tst	PIA0D0
+	bpl	inprdex
+
+inprddn	orb	#INPUTDN	joystick points down
+	bra	inprdex
+
+inprdup	orb	#INPUTUP	joystick points up
+
+inprdex	stb	inpflgs
+	rts
 
 *
 * clrscrn -- clear both video fields to the background color
@@ -375,6 +469,8 @@ plyfmsz	equ	(*-plyfmap)
 * Variable Declarations
 *
 vfield	rmb	1
+
+inpflgs	rmb	1
 
 ersptrs	rmb	4
 
