@@ -35,7 +35,7 @@ hwinit	orcc	#$50		disable IRQ and FIRQ
 	clr	$ffc2		clr v1
 	clr	$ffc5		set v2
 	lda	#$c8		g3c, css=1
-	sta	$ff22		setup vdg
+	sta	PIA1D1		setup vdg
 
 	clr	$ffc7		set video base to $0e00
 	clr	$ffc9
@@ -98,6 +98,10 @@ bgsetup	jsr	clrscrn		clear video buffers
 vblank	tst	PIA0D1		wait for vsync interrupt
 	sync
 
+	lda	#$08		restore CSS for BCMO colors
+	ora	PIA1D1
+	sta	PIA1D1
+
 	lda	vfield		load previous field indicator
 
 	deca			switch video field indicator
@@ -134,6 +138,9 @@ vcalc	jsr	inpread		read player input for next frame
 
 	ldd	#player		use default player graphic
 	std	2,s
+
+	ldd	,s		copy player position for movement check
+	pshs	d
 
 	ldb	inpflgs		check for any indication of movement
 	andb	#INMVMSK
@@ -179,9 +186,24 @@ vcalc4	ldb	inpflgs		test for button push
 	andb	#INPUTBT
 	beq	vcalc5
 	ldd	#xmstree	indicate button push by altering graphic
-	std	2,s
+	std	4,s
 
-vcalc5	equ	*
+vcalc5	ldd	,s		check for pending collision
+	jsr	bgcolck
+
+	bcc	vcalc6		if collision, don't move
+	leas	2,s
+
+	lda	#$f7		also, flash the screen (w/ CSS change)
+	anda	PIA1D1
+	sta	PIA1D1
+
+	bra	vcalc7
+
+vcalc6	puls	d		allow movement
+	std	,s
+
+vcalc7	equ	*
 
 	ifdef MON09
 * Check for user break (development only)
@@ -274,11 +296,15 @@ clsloop	std	,x++
 *	D,X,Y clobbered
 *
 bgcmini	ldx	#plyfmap
-	ldy	#bgclmap
 	lda	#plyfmsz	init map size counter
 	pshs	a
 
-	clra
+	ldy	#bgclmap
+bginilp	clr	,y+
+	deca
+	bne	bginilp
+	ldy	#bgclmap
+
 bgcloop	pshs	a
 	clrb
 
@@ -289,6 +315,9 @@ bgcloop	pshs	a
 	ora	,s+
 
 	ora	,s+
+	sta	4,y
+
+	ora	,y
 	sta	,y+
 	tfr	b,a
 
@@ -296,6 +325,52 @@ bgcloop	pshs	a
 	bne	bgcloop
 
 	leas	1,s
+	rts
+
+*
+* bgcolck -- check for collision with background
+*
+*	D -- x- and y-coordinate (in A and B)
+*
+*	D,X clobbered
+*
+bgcolck	pshs	a		save x-offset
+
+	lslb			transform x- and y-offset to pointer
+	lslb
+	ldx	#bgclmap
+	leax	b,x
+	lsra
+	lsra
+	lsra
+	leax	a,x
+
+	puls	a		use x-offset to build bitmask
+	anda	#$07
+	inca
+	ldb	#$c0		two bits wide for tile/sprite size
+
+bgclck1	deca
+	beq	bgclck2
+	lsrb
+	bra	bgclck1
+
+bgclck2	bitb	,x		check bitmask against collision map
+	bne	bgclckx			at each relevant position
+	bitb	4,x
+	bne	bgclckx
+	cmpb	#$01
+	bne	bgclck3
+	ldb	#$80
+	bitb	1,x
+	bne	bgclckx
+	bitb	5,x
+	bne	bgclckx
+
+bgclck3	andcc	#$fe		clear carry on no collision
+	rts
+
+bgclckx	orcc	#$01		set carry on collision
 	rts
 
 *
