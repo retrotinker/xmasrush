@@ -17,6 +17,10 @@ INPUTUP	equ	$04
 INPUTDN	equ	$08
 INPUTBT	equ	$10
 
+INMVMSK	equ	$0f		mask of movement bits
+
+MVDLRST	equ	$08		reset value for movement delay counter
+
 VBASE	equ	$0e00
 VSIZE	equ	$0c00
 VEXTNT	equ	(2*VSIZE)
@@ -78,13 +82,16 @@ bgsetup	jsr	clrscrn		clear video buffers
 	ldu	#snowman	point to data for temporary snowman
 	jsr	tiledrw
 
-	ldd	#$101d
+	ldd	#$101e
 	std	ersptrs
 	std	ersptrs+2
 	leas	-4,s
 	std	,s
 	ldd	#player
 	std	2,s
+
+	lda	#$01		preset movement delay counter
+	sta	mvdlcnt
 
 vblank	tst	PIA0D1		wait for vsync interrupt
 	sync
@@ -123,28 +130,46 @@ vdraw	lda	vfield		retrieve current field indicator
 
 vcalc	jsr	inpread		read player input for next frame
 
-	ldd	#$101d		store base position for player
-	std	,s
 	ldd	#player		use default player graphic
 	std	2,s
 
+	ldb	inpflgs		check for any indication of movement
+	andb	#INMVMSK
+	beq	vcalc4
+
+	dec	mvdlcnt		decrement movement delay counter
+	bne	vcalc4
+
+	lda	#MVDLRST	reset movement delay counter
+	sta	mvdlcnt
+
 	ldb	inpflgs		test for movement right
 	andb	#INPUTRT
+	beq	vcalc1
+	ldb	#$1e		enforce boundaries
+	cmpb	,s
 	beq	vcalc1
 	inc	,s		indicate right by altering position
 
 vcalc1	ldb	inpflgs		test for movement left
 	andb	#INPUTLT
 	beq	vcalc2
+	tst	,s		enforce boundaries
+	beq	vcalc2
 	dec	,s		indicate left by altering position
 
 vcalc2	ldb	inpflgs		test for movement down
 	andb	#INPUTDN
 	beq	vcalc3
+	ldb	#$1e		enforce boundaries
+	cmpb	1,s
+	beq	vcalc3
 	inc	1,s		indicate down by altering position
 
 vcalc3	ldb	inpflgs		test for movement up
 	andb	#INPUTUP
+	beq	vcalc4
+	tst	1,s		enforce boundaries
 	beq	vcalc4
 	dec	1,s		indicate up by altering position
 
@@ -476,5 +501,7 @@ vfield	rmb	1
 inpflgs	rmb	1
 
 ersptrs	rmb	4
+
+mvdlcnt	rmb	1
 
 	end	START
