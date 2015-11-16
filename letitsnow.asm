@@ -62,6 +62,8 @@ bgsetup	jsr	clrscrn		clear video buffers
 
 	jsr	plfdraw		draw the playfield
 
+	jsr	bgcmini		init background collision map
+
 	ldd	#$1511		point to grid offset for xmas tree
 	ldu	#xmstree	point to data for xmas tree
 	jsr	tiledrw
@@ -264,6 +266,36 @@ clrscrn	ldx	#VBASE
 clsloop	std	,x++
 	cmpx	#(VBASE+VEXTNT)
 	blt	clsloop
+	rts
+
+*
+* bgcmini -- init background collision map
+*
+*	D,X,Y clobbered
+*
+bgcmini	ldx	#plyfmap
+	ldy	#bgclmap
+	lda	#plyfmsz	init map size counter
+	pshs	a
+
+	clra
+bgcloop	pshs	a
+	clrb
+
+	lda	,x+
+	pshs	a
+	lsra
+	rorb
+	ora	,s+
+
+	ora	,s+
+	sta	,y+
+	tfr	b,a
+
+	dec	,s
+	bne	bgcloop
+
+	leas	1,s
 	rts
 
 *
@@ -503,5 +535,7 @@ inpflgs	rmb	1
 ersptrs	rmb	4
 
 mvdlcnt	rmb	1
+
+bgclmap	rmb	plyfmsz
 
 	end	START
