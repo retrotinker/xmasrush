@@ -270,7 +270,40 @@ vcalc5	ldd	,s		check for pending collision
 vcalc6	puls	d		allow movement
 	std	playpos
 
-vcalc7	equ	*
+vcalc7	ldx	#xmstpos
+	jsr	plcolck
+	bcc	vcalc8
+
+	lda	#GMFXMTR
+	coma
+	anda	gamflgs
+	sta	gamflgs
+
+vcalc8	ldx	#snw1pos
+	jsr	plcolck
+	bcc	vcalc9
+
+	jmp	START
+
+vcalc9	ldx	#snw2pos
+	jsr	plcolck
+	bcc	vcalc10
+
+	jmp	START
+
+vcalc10	ldx	#snw3pos
+	jsr	plcolck
+	bcc	vcalc11
+
+	jmp	START
+
+vcalc11	ldx	#snw4pos
+	jsr	plcolck
+	bcc	vcalc12
+
+	jmp	START
+
+vcalc12	equ	*
 
 	ifdef MON09
 * Check for user break (development only)
@@ -282,6 +315,34 @@ chkuart	lda	$ff69		Check for serial port activity
 	endif
 
 vloop	jmp	vblank
+
+*
+* plcolck -- check for collision w/ player
+*
+*	X -- pointer to object position data
+*
+*	A,X clobbered
+*
+plcolck	lda	,x+
+	deca
+	cmpa	playpos
+	bgt	plcolcx
+	adda	#$02
+	cmpa	playpos
+	blt	plcolcx
+	lda	,x
+	deca
+	cmpa	playpos+1
+	bgt	plcolcx
+	adda	#$02
+	cmpa	playpos+1
+	blt	plcolcx
+
+	orcc	#$01
+	rts
+
+plcolcx	andcc	#$fe
+	rts
 
 *
 * inpread -- read joystick input
