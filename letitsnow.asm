@@ -74,9 +74,6 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	playpos
 	std	ersary0
 	std	ersary1
-	leas	-2,s
-	ldd	#player
-	std	,s
 
 	lda	#$01		preset movement delay counter
 	sta	mvdlcnt
@@ -202,7 +199,7 @@ vdraw4	lda	#GMFSNW4
 
 vdraw5	ldd	playpos		get player grid offset
 	std	,y		save player grid offset to erase pointer
-	ldu	,s		retrieve player graphic pointer
+	ldu	#player		retrieve player graphic pointer
 	jsr	sprtdrw		draw snowman sprite
 
 vcalc	jsr	inpread		read player input for next frame
@@ -256,8 +253,7 @@ vcalc3	ldb	inpflgs		test for movement up
 vcalc4	ldb	inpflgs		test for button push
 	andb	#INPUTBT
 	beq	vcalc5
-	ldd	#xmstree	indicate button push by altering graphic
-	std	2,s
+	jmp	START
 
 vcalc5	ldd	,s		check for pending collision
 	jsr	bgcolck
