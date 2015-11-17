@@ -19,6 +19,12 @@ INPUTBT	equ	$10
 
 INMVMSK	equ	$0f		mask of movement bits
 
+GMFXMTR	equ	$01
+GMFSNW1	equ	$02
+GMFSNW2	equ	$04
+GMFSNW3	equ	$08
+GMFSNW4	equ	$10
+
 MVDLRST	equ	$08		reset value for movement delay counter
 
 VBASE	equ	$0e00
@@ -100,6 +106,9 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	ersary0+2
 	std	ersary1+2
 
+	lda	#(GMFXMTR+GMFSNW1+GMFSNW2+GMFSNW3+GMFSNW4)
+	sta	gamflgs
+
 vblank	tst	PIA0D1		wait for vsync interrupt
 	sync
 
@@ -146,32 +155,52 @@ verase	lsla			convert to pointer offset
 	ldd	10,y		retreive erase grid offset
 	jsr	sprtera		erase sprite
 
-vdraw	ldd	xmstpos		point to grid offset for xmas tree
+vdraw	lda	#GMFXMTR
+	bita	gamflgs
+	beq	vdraw1
+
+	ldd	xmstpos		point to grid offset for xmas tree
 	std	10,y		save xmas tree grid offset to erase pointer
 	ldu	#xmstree	point to data for xmas tree
 	jsr	sprtdrw
+
+vdraw1	lda	#GMFSNW1
+	bita	gamflgs
+	beq	vdraw2
 
 	ldd	snw1pos		point to grid offset for snowman 1
 	std	8,y		save snowman grid offset to erase pointer
 	ldu	#snowman	point to data for snowman
 	jsr	sprtdrw
 
+vdraw2	lda	#GMFSNW2
+	bita	gamflgs
+	beq	vdraw3
+
 	ldd	snw2pos		point to grid offset for snowman 2
 	std	6,y		save snowman grid offset to erase pointer
 	ldu	#snowman	point to data for snowman
 	jsr	sprtdrw
+
+vdraw3	lda	#GMFSNW3
+	bita	gamflgs
+	beq	vdraw4
 
 	ldd	snw3pos		point to grid offset for snowman 3
 	std	4,y		save snowman grid offset to erase pointer
 	ldu	#snowman	point to data for snowman
 	jsr	sprtdrw
 
+vdraw4	lda	#GMFSNW4
+	bita	gamflgs
+	beq	vdraw5
+
 	ldd	snw4pos		point to grid offset for snowman 4
 	std	2,y		save snowman grid offset to erase pointer
 	ldu	#snowman	point to data for snowman
 	jsr	sprtdrw
 
-	ldd	playpos		get player grid offset
+vdraw5	ldd	playpos		get player grid offset
 	std	,y		save player grid offset to erase pointer
 	ldu	,s		retrieve player graphic pointer
 	jsr	sprtdrw		draw snowman sprite
@@ -650,6 +679,7 @@ ersptrs	fdb	ersary0,ersary1
 vfield	rmb	1
 
 inpflgs	rmb	1
+gamflgs	rmb	1
 
 ersary0	rmb	12
 ersary1	rmb	12
