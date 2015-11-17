@@ -64,36 +64,41 @@ bgsetup	jsr	clrscrn		clear video buffers
 
 	jsr	bgcmini		init background collision map
 
-	ldd	#$1511		point to grid offset for xmas tree
-	ldu	#xmstree	point to data for xmas tree
-	jsr	tiledrw
-
-	ldd	#$0505		point to grid offset for temporary snowman
-	ldu	#snowman	point to data for temporary snowman
-	jsr	tiledrw
-
-	ldd	#$0e0b		point to grid offset for temporary snowman
-	ldu	#snowman	point to data for temporary snowman
-	jsr	tiledrw
-
-	ldd	#$190d		point to grid offset for temporary snowman
-	ldu	#snowman	point to data for temporary snowman
-	jsr	tiledrw
-
-	ldd	#$0b18		point to grid offset for temporary snowman
-	ldu	#snowman	point to data for temporary snowman
-	jsr	tiledrw
-
-	ldd	#$101e
-	std	ersptrs
-	std	ersptrs+2
-	leas	-4,s
-	std	,s
+	ldd	#$0f1e
+	std	playpos
+	std	ersary0
+	std	ersary1
+	leas	-2,s
 	ldd	#player
-	std	2,s
+	std	,s
 
 	lda	#$01		preset movement delay counter
 	sta	mvdlcnt
+
+	ldd	#$1511		point to grid offset for xmas tree
+	std	xmstpos
+	std	ersary0+10
+	std	ersary1+10
+
+	ldd	#$0505		point to grid offset for snowman 1 start
+	std	snw1pos
+	std	ersary0+8
+	std	ersary1+8
+
+	ldd	#$0e0b		point to grid offset for snowman 2 start
+	std	snw2pos
+	std	ersary0+6
+	std	ersary1+6
+
+	ldd	#$190d		point to grid offset for snowman 3 start
+	std	snw3pos
+	std	ersary0+4
+	std	ersary1+4
+
+	ldd	#$0b18		point to grid offset for snowman 4 start
+	std	snw4pos
+	std	ersary0+2
+	std	ersary1+2
 
 vblank	tst	PIA0D1		wait for vsync interrupt
 	sync
@@ -120,26 +125,63 @@ vblank1	lda	#$01		reset video field indicator
 vblnkex	sta	vfield		save current field indicator
 
 verase	lsla			convert to pointer offset
-	ldx	#ersptrs	use as offset into erase pointer array
-	ldd	a,x		retrieve erase grid offset
+	ldy	#ersptrs	use as offset into erase pointer array
+	ldy	a,y		retrieve pointer to base of erase offset array
+
+	ldd	,y		retreive erase grid offset
 	jsr	sprtera		erase sprite
 
-vdraw	lda	vfield		retrieve current field indicator
-	lsla			convert to pointer offset
-	ldy	#ersptrs	use as offset into erase pointer array
-	leay	a,y		retrieve erase pointer
-	ldd	,s		get snowman grid offset
-	std	,y		save snowman grid offset to erase pointer
+	ldd	2,y		retreive erase grid offset
+	jsr	sprtera		erase sprite
 
-	ldu	2,s		retrieve player graphic pointer
+	ldd	4,y		retreive erase grid offset
+	jsr	sprtera		erase sprite
+
+	ldd	6,y		retreive erase grid offset
+	jsr	sprtera		erase sprite
+
+	ldd	8,y		retreive erase grid offset
+	jsr	sprtera		erase sprite
+
+	ldd	10,y		retreive erase grid offset
+	jsr	sprtera		erase sprite
+
+vdraw	ldd	xmstpos		point to grid offset for xmas tree
+	std	10,y		save xmas tree grid offset to erase pointer
+	ldu	#xmstree	point to data for xmas tree
+	jsr	sprtdrw
+
+	ldd	snw1pos		point to grid offset for snowman 1
+	std	8,y		save snowman grid offset to erase pointer
+	ldu	#snowman	point to data for snowman
+	jsr	sprtdrw
+
+	ldd	snw2pos		point to grid offset for snowman 2
+	std	6,y		save snowman grid offset to erase pointer
+	ldu	#snowman	point to data for snowman
+	jsr	sprtdrw
+
+	ldd	snw3pos		point to grid offset for snowman 3
+	std	4,y		save snowman grid offset to erase pointer
+	ldu	#snowman	point to data for snowman
+	jsr	sprtdrw
+
+	ldd	snw4pos		point to grid offset for snowman 4
+	std	2,y		save snowman grid offset to erase pointer
+	ldu	#snowman	point to data for snowman
+	jsr	sprtdrw
+
+	ldd	playpos		get player grid offset
+	std	,y		save player grid offset to erase pointer
+	ldu	,s		retrieve player graphic pointer
 	jsr	sprtdrw		draw snowman sprite
 
 vcalc	jsr	inpread		read player input for next frame
 
 	ldd	#player		use default player graphic
-	std	2,s
+	std	,s
 
-	ldd	,s		copy player position for movement check
+	ldd	playpos		copy player position for movement check
 	pshs	d
 
 	ldb	inpflgs		check for any indication of movement
@@ -186,7 +228,7 @@ vcalc4	ldb	inpflgs		test for button push
 	andb	#INPUTBT
 	beq	vcalc5
 	ldd	#xmstree	indicate button push by altering graphic
-	std	4,s
+	std	2,s
 
 vcalc5	ldd	,s		check for pending collision
 	jsr	bgcolck
@@ -201,7 +243,7 @@ vcalc5	ldd	,s		check for pending collision
 	bra	vcalc7
 
 vcalc6	puls	d		allow movement
-	std	,s
+	std	playpos
 
 vcalc7	equ	*
 
@@ -600,6 +642,8 @@ plyfmap	fcb	10101010b,10101010b,10101010b,10101010b
 	fcb	00000000b,00000000b,00000000b,00000000b
 plyfmsz	equ	(*-plyfmap)
 
+ersptrs	fdb	ersary0,ersary1
+
 *
 * Variable Declarations
 *
@@ -607,10 +651,19 @@ vfield	rmb	1
 
 inpflgs	rmb	1
 
-ersptrs	rmb	4
+ersary0	rmb	12
+ersary1	rmb	12
 
 mvdlcnt	rmb	1
 
 bgclmap	rmb	plyfmsz
+
+playpos	rmb	2
+xmstpos	rmb	2
+
+snw1pos	rmb	2
+snw2pos	rmb	2
+snw3pos	rmb	2
+snw4pos	rmb	2
 
 	end	START
