@@ -113,6 +113,10 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	ersary0+2
 	std	ersary1+2
 
+	lda	#MVDLRST
+	sta	sn4mcnt
+	clr	sn4mdir
+
 	lda	#(GMFXMTR+GMFSNW1+GMFSNW2+GMFSNW3+GMFSNW4)
 	sta	gamflgs
 
@@ -280,40 +284,42 @@ vcalc5	ldd	,s		check for pending collision
 vcalc6	puls	d		allow movement
 	std	playpos
 
-vcalc7	ldx	#xmstpos
+vcalc7	jsr	snw4mov
+
+vcalc8	ldx	#xmstpos
 	jsr	plcolck
-	bcc	vcalc8
+	bcc	vcalc9
 
 	lda	#GMFXMTR
 	coma
 	anda	gamflgs
 	sta	gamflgs
 
-vcalc8	ldx	#snw1pos
-	jsr	plcolck
-	bcc	vcalc9
-
-	jmp	START
-
-vcalc9	ldx	#snw2pos
+vcalc9	ldx	#snw1pos
 	jsr	plcolck
 	bcc	vcalc10
 
 	jmp	START
 
-vcalc10	ldx	#snw3pos
+vcalc10	ldx	#snw2pos
 	jsr	plcolck
 	bcc	vcalc11
 
 	jmp	START
 
-vcalc11	ldx	#snw4pos
+vcalc11	ldx	#snw3pos
 	jsr	plcolck
 	bcc	vcalc12
 
 	jmp	START
 
-vcalc12	equ	*
+vcalc12	ldx	#snw4pos
+	jsr	plcolck
+	bcc	vcalc13
+
+	jmp	START
+
+vcalc13	equ	*
 
 	ifdef MON09
 * Check for user break (development only)
@@ -325,6 +331,37 @@ chkuart	lda	$ff69		Check for serial port activity
 	endif
 
 vloop	jmp	vblank
+
+*
+* Move snowman 4
+*
+snw4mov	dec	sn4mcnt
+	bne	snw4mvx
+
+	lda	#MVDLRST
+	sta	sn4mcnt
+
+	ldd	snw4pos
+	tst	sn4mdir
+	bne	snw4mv1
+
+	inca
+	bra	snw4mv2
+
+snw4mv1	deca
+
+snw4mv2	pshs	d
+	jsr	bgcolck
+
+	bcc	snw4mv3
+	leas	2,s
+	com	sn4mdir
+	bra	snw4mvx
+
+snw4mv3	puls	d
+	std	snw4pos
+
+snw4mvx	rts
 
 *
 * plcolck -- check for collision w/ player
@@ -762,5 +799,8 @@ snw1pos	rmb	2
 snw2pos	rmb	2
 snw3pos	rmb	2
 snw4pos	rmb	2
+
+sn4mcnt	rmb	1
+sn4mdir rmb	1
 
 	end	START
