@@ -114,7 +114,14 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	ersary1+2
 
 	lda	#MVDLRST
+	sta	sn1mcnt
+	sta	sn2mcnt
+	sta	sn3mcnt
 	sta	sn4mcnt
+
+	clr	sn1mdir
+	clr	sn2mdir
+	clr	sn3mdir
 	clr	sn4mdir
 
 	lda	#(GMFXMTR+GMFSNW1+GMFSNW2+GMFSNW3+GMFSNW4)
@@ -284,7 +291,10 @@ vcalc5	ldd	,s		check for pending collision
 vcalc6	puls	d		allow movement
 	std	playpos
 
-vcalc7	jsr	snw4mov
+vcalc7	jsr	snw1mov
+	jsr	snw2mov
+	jsr	snw3mov
+	jsr	snw4mov
 
 vcalc8	ldx	#xmstpos
 	jsr	plcolck
@@ -331,6 +341,99 @@ chkuart	lda	$ff69		Check for serial port activity
 	endif
 
 vloop	jmp	vblank
+
+*
+* Move snowman 1
+*
+snw1mov	dec	sn1mcnt
+	bne	snw1mvx
+
+	lda	#MVDLRST
+	sta	sn1mcnt
+
+	ldd	snw1pos
+	tst	sn1mdir
+	bne	snw1mv1
+
+	inca
+	bra	snw1mv2
+
+snw1mv1	deca
+
+snw1mv2	pshs	d
+	jsr	bgcolck
+
+	bcc	snw1mv3
+	leas	2,s
+	com	sn1mdir
+	bra	snw1mvx
+
+snw1mv3	puls	d
+	std	snw1pos
+
+snw1mvx	rts
+
+*
+* Move snowman 2
+*
+snw2mov	dec	sn2mcnt
+	bne	snw2mvx
+
+	lda	#MVDLRST
+	sta	sn2mcnt
+
+	ldd	snw2pos
+	tst	sn2mdir
+	bne	snw2mv1
+
+	incb
+	bra	snw2mv2
+
+snw2mv1	decb
+
+snw2mv2	pshs	d
+	jsr	bgcolck
+
+	bcc	snw2mv3
+	leas	2,s
+	com	sn2mdir
+	bra	snw2mvx
+
+snw2mv3	puls	d
+	std	snw2pos
+
+snw2mvx	rts
+
+*
+* Move snowman 3
+*
+snw3mov	dec	sn3mcnt
+	bne	snw3mvx
+
+	lda	#MVDLRST
+	sta	sn3mcnt
+
+	ldd	snw3pos
+	tst	sn3mdir
+	bne	snw3mv1
+
+	incb
+	bra	snw3mv2
+
+snw3mv1	decb
+
+snw3mv2	pshs	d
+	jsr	bgcolck
+
+	bcc	snw3mv3
+	leas	2,s
+	com	sn3mdir
+	bra	snw3mvx
+
+snw3mv3	puls	d
+	std	snw3pos
+
+snw3mvx	rts
 
 *
 * Move snowman 4
@@ -800,7 +903,14 @@ snw2pos	rmb	2
 snw3pos	rmb	2
 snw4pos	rmb	2
 
+sn1mcnt	rmb	1
+sn2mcnt	rmb	1
+sn3mcnt	rmb	1
 sn4mcnt	rmb	1
+
+sn1mdir rmb	1
+sn2mdir rmb	1
+sn3mdir rmb	1
 sn4mdir rmb	1
 
 	end	START
