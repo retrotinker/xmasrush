@@ -37,6 +37,16 @@ START	equ	(VBASE+VEXTNT)
 
 hwinit	orcc	#$50		disable IRQ and FIRQ
 
+	lda	PIA1C0
+	anda	#$fb
+	sta	PIA1C0
+	lda	PIA1D0
+	anda	#$fd
+	sta	PIA1D0
+	lda	PIA1C0
+	ora	#$04
+	sta	PIA1C0
+
 	clr	$ffc0		clr v0
 	clr	$ffc2		clr v1
 	clr	$ffc5		set v2
