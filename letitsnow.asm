@@ -224,7 +224,20 @@ vdraw5	ldd	playpos		get player grid offset
 	ldu	#player		retrieve player graphic pointer
 	jsr	sprtdrw		draw snowman sprite
 
-vcalc	jsr	inpread		read player input for next frame
+vcalc	lda	#GMFXMTR
+	bita	gamflgs
+	bne	vcalc0
+	lda	playpos+1
+	cmpa	#$1e
+	blt	vcalc0
+
+	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	lbne	vcalc13
+
+	jmp	START
+
+vcalc0	jsr	inpread		read player input for next frame
 
 	ldd	#player		use default player graphic
 	std	,s
