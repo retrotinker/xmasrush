@@ -94,7 +94,7 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	ersary0+10
 	std	ersary1+10
 
-	ldd	#$0505		point to grid offset for snowman 1 start
+	ldd	#$0703		point to grid offset for snowman 1 start
 	std	snw1pos
 	std	ersary0+8
 	std	ersary1+8
