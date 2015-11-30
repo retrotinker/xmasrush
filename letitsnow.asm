@@ -233,7 +233,7 @@ vcalc	lda	#GMFXMTR
 
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
-	lbne	vcalc13
+	lbne	vcalc14
 
 	jmp	START
 
@@ -310,8 +310,10 @@ vcalc7	jsr	snw1mov
 	jsr	snw3mov
 	jsr	snw4mov
 
-vcalc8	ldx	#xmstpos
-	jsr	plcolck
+vcalc8	ldd	playpos
+	pshs	d
+	ldx	#xmstpos
+	jsr	spcolck
 	bcc	vcalc9
 
 	lda	#GMFXMTR
@@ -320,30 +322,36 @@ vcalc8	ldx	#xmstpos
 	sta	gamflgs
 
 vcalc9	ldx	#snw1pos
-	jsr	plcolck
+	jsr	spcolck
 	bcc	vcalc10
 
+	leas	2,s
 	jmp	START
 
 vcalc10	ldx	#snw2pos
-	jsr	plcolck
+	jsr	spcolck
 	bcc	vcalc11
 
+	leas	2,s
 	jmp	START
 
 vcalc11	ldx	#snw3pos
-	jsr	plcolck
+	jsr	spcolck
 	bcc	vcalc12
 
+	leas	2,s
 	jmp	START
 
 vcalc12	ldx	#snw4pos
-	jsr	plcolck
+	jsr	spcolck
 	bcc	vcalc13
 
+	leas	2,s
 	jmp	START
 
-vcalc13	equ	*
+vcalc13	leas	2,s
+
+vcalc14	equ	*
 
 	ifdef MON09
 * Check for user break (development only)
@@ -517,31 +525,32 @@ snw4mv5	puls	d
 snw4mvx	rts
 
 *
-* plcolck -- check for collision w/ player
+* spcolck -- check for collision w/ player
 *
-*	X -- pointer to object position data
+*	2,S -- sprite position data
+*	X   -- pointer to object position data
 *
 *	A,X clobbered
 *
-plcolck	lda	,x+
+spcolck	lda	,x+
 	deca
-	cmpa	playpos
-	bgt	plcolcx
+	cmpa	2,s
+	bgt	spcolcx
 	adda	#$02
-	cmpa	playpos
-	blt	plcolcx
+	cmpa	2,s
+	blt	spcolcx
 	lda	,x
 	deca
-	cmpa	playpos+1
-	bgt	plcolcx
+	cmpa	3,s
+	bgt	spcolcx
 	adda	#$02
-	cmpa	playpos+1
-	blt	plcolcx
+	cmpa	3,s
+	blt	spcolcx
 
 	orcc	#$01
 	rts
 
-plcolcx	andcc	#$fe
+spcolcx	andcc	#$fe
 	rts
 
 *
