@@ -391,15 +391,22 @@ snw1mv2	cmpb	playpos+1
 snw1mv3	beq	snw1mv4
 	decb
 
-snw1mv4	pshs	d
-	jsr	bgcolck
+snw1mv4	cmpb	#$1e
+	bgt	snw1mv6
 
-	bcc	snw1mv5
-	leas	2,s
-	com	sn1mdir
+	pshs	d
+	jsr	bgcolck
+	bcs	snw1mv5
+
+	ldx	#xmstpos
+	jsr	spcolck
+	bcc	snw1mv7
+
+snw1mv5	leas	2,s
+snw1mv6	com	sn1mdir
 	bra	snw1mvx
 
-snw1mv5	puls	d
+snw1mv7	puls	d
 	std	snw1pos
 
 snw1mvx	rts
@@ -431,15 +438,22 @@ snw2mv2	cmpa	playpos
 snw2mv3	beq	snw2mv4
 	deca
 
-snw2mv4	pshs	d
-	jsr	bgcolck
+snw2mv4	cmpb	#$1e
+	bgt	snw2mv6
 
-	bcc	snw2mv5
-	leas	2,s
-	com	sn2mdir
+	pshs	d
+	jsr	bgcolck
+	bcs	snw2mv5
+
+	ldx	#xmstpos
+	jsr	spcolck
+	bcc	snw2mv7
+
+snw2mv5	leas	2,s
+snw2mv6	com	sn2mdir
 	bra	snw2mvx
 
-snw2mv5	puls	d
+snw2mv7	puls	d
 	std	snw2pos
 
 snw2mvx	rts
@@ -471,15 +485,22 @@ snw3mv2	cmpa	playpos
 snw3mv3	beq	snw3mv4
 	deca
 
-snw3mv4	pshs	d
-	jsr	bgcolck
+snw3mv4	cmpb	#$1e
+	bgt	snw3mv6
 
-	bcc	snw3mv5
-	leas	2,s
-	com	sn3mdir
+	pshs	d
+	jsr	bgcolck
+	bcs	snw3mv5
+
+	ldx	#xmstpos
+	jsr	spcolck
+	bcc	snw3mv7
+
+snw3mv5	leas	2,s
+snw3mv6	com	sn3mdir
 	bra	snw3mvx
 
-snw3mv5	puls	d
+snw3mv7	puls	d
 	std	snw3pos
 
 snw3mvx	rts
@@ -511,15 +532,22 @@ snw4mv2	cmpb	playpos+1
 snw4mv3	beq	snw4mv4
 	decb
 
-snw4mv4	pshs	d
-	jsr	bgcolck
+snw4mv4	cmpb	#$1e
+	bgt	snw4mv6
 
-	bcc	snw4mv5
-	leas	2,s
-	com	sn4mdir
+	pshs	d
+	jsr	bgcolck
+	bcs	snw4mv5
+
+	ldx	#xmstpos
+	jsr	spcolck
+	bcc	snw4mv7
+
+snw4mv5	leas	2,s
+snw4mv6	com	sn4mdir
 	bra	snw4mvx
 
-snw4mv5	puls	d
+snw4mv7	puls	d
 	std	snw4pos
 
 snw4mvx	rts
