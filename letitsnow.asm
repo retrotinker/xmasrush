@@ -361,15 +361,24 @@ snw1mov	dec	sn1mcnt
 
 snw1mv1	deca
 
-snw1mv2	pshs	d
+snw1mv2	cmpb	playpos+1
+	bge	snw1mv3
+
+	incb
+	bra	snw1mv4
+
+snw1mv3	beq	snw1mv4
+	decb
+
+snw1mv4	pshs	d
 	jsr	bgcolck
 
-	bcc	snw1mv3
+	bcc	snw1mv5
 	leas	2,s
 	com	sn1mdir
 	bra	snw1mvx
 
-snw1mv3	puls	d
+snw1mv5	puls	d
 	std	snw1pos
 
 snw1mvx	rts
@@ -392,15 +401,24 @@ snw2mov	dec	sn2mcnt
 
 snw2mv1	decb
 
-snw2mv2	pshs	d
+snw2mv2	cmpa	playpos
+	bge	snw2mv3
+
+	inca
+	bra	snw2mv4
+
+snw2mv3	beq	snw2mv4
+	deca
+
+snw2mv4	pshs	d
 	jsr	bgcolck
 
-	bcc	snw2mv3
+	bcc	snw2mv5
 	leas	2,s
 	com	sn2mdir
 	bra	snw2mvx
 
-snw2mv3	puls	d
+snw2mv5	puls	d
 	std	snw2pos
 
 snw2mvx	rts
@@ -423,15 +441,24 @@ snw3mov	dec	sn3mcnt
 
 snw3mv1	decb
 
-snw3mv2	pshs	d
+snw3mv2	cmpa	playpos
+	bge	snw3mv3
+
+	inca
+	bra	snw3mv4
+
+snw3mv3	beq	snw3mv4
+	deca
+
+snw3mv4	pshs	d
 	jsr	bgcolck
 
-	bcc	snw3mv3
+	bcc	snw3mv5
 	leas	2,s
 	com	sn3mdir
 	bra	snw3mvx
 
-snw3mv3	puls	d
+snw3mv5	puls	d
 	std	snw3pos
 
 snw3mvx	rts
@@ -454,15 +481,24 @@ snw4mov	dec	sn4mcnt
 
 snw4mv1	deca
 
-snw4mv2	pshs	d
+snw4mv2	cmpb	playpos+1
+	bge	snw4mv3
+
+	incb
+	bra	snw4mv4
+
+snw4mv3	beq	snw4mv4
+	decb
+
+snw4mv4	pshs	d
 	jsr	bgcolck
 
-	bcc	snw4mv3
+	bcc	snw4mv5
 	leas	2,s
 	com	sn4mdir
 	bra	snw4mvx
 
-snw4mv3	puls	d
+snw4mv5	puls	d
 	std	snw4pos
 
 snw4mvx	rts
