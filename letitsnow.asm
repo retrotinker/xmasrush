@@ -26,6 +26,7 @@ GMFSNW3	equ	$08
 GMFSNW4	equ	$10
 
 MVDLRST	equ	$08		reset value for movement delay counter
+SNMDRST	equ	$10		reset value for snowman move delay counter
 
 VBASE	equ	$0e00
 VSIZE	equ	$0c00
@@ -113,7 +114,7 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	ersary0+2
 	std	ersary1+2
 
-	lda	#MVDLRST
+	lda	#SNMDRST
 	sta	sn1mcnt
 	sta	sn2mcnt
 	sta	sn3mcnt
@@ -348,7 +349,7 @@ vloop	jmp	vblank
 snw1mov	dec	sn1mcnt
 	bne	snw1mvx
 
-	lda	#MVDLRST
+	lda	#SNMDRST
 	sta	sn1mcnt
 
 	ldd	snw1pos
@@ -379,7 +380,7 @@ snw1mvx	rts
 snw2mov	dec	sn2mcnt
 	bne	snw2mvx
 
-	lda	#MVDLRST
+	lda	#SNMDRST
 	sta	sn2mcnt
 
 	ldd	snw2pos
@@ -410,7 +411,7 @@ snw2mvx	rts
 snw3mov	dec	sn3mcnt
 	bne	snw3mvx
 
-	lda	#MVDLRST
+	lda	#SNMDRST
 	sta	sn3mcnt
 
 	ldd	snw3pos
@@ -441,7 +442,7 @@ snw3mvx	rts
 snw4mov	dec	sn4mcnt
 	bne	snw4mvx
 
-	lda	#MVDLRST
+	lda	#SNMDRST
 	sta	sn4mcnt
 
 	ldd	snw4pos
