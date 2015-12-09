@@ -518,40 +518,63 @@ snw3mov	dec	sn3mcnt
 	lda	#SNMDRST
 	sta	sn3mcnt
 
+	ldd	playpos
+	suba	xmstpos
+	asra
+	adda	xmstpos
+	subb	xmstpos+1
+	asrb
+	addb	xmstpos+1
+	std	snw3tgt
+
 	ldd	snw3pos
-	tst	sn3mdir
-	bne	snw3mv1
+	cmpa	snw3tgt
+	blt	snw3mv1
+	bgt	snw3mv2
+	bra	snw3mv3
 
-	incb
-	bra	snw3mv2
+snw3mv1	inca
+	bra	snw3mv3
 
-snw3mv1	decb
+snw3mv2	deca
 
-snw3mv2	cmpa	playpos
-	bge	snw3mv3
-
-	inca
-	bra	snw3mv4
-
-snw3mv3	beq	snw3mv4
-	deca
-
-snw3mv4	cmpb	#$1e
-	bgt	snw3mv6
-
-	pshs	d
+snw3mv3	pshs	d
 	jsr	bgcolck
-	bcs	snw3mv5
+	bcs	snw3mv4
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw3mv7
+	bcc	snw3mv5
 
-snw3mv5	leas	2,s
-snw3mv6	com	sn3mdir
+snw3mv4	leas	2,s
+	ldd	snw3pos
+	bra	snw3mv6
+
+snw3mv5	puls	d
+	std	snw3pos
+
+snw3mv6	cmpb	snw3tgt+1
+	blt	snw3mv7
+	bgt	snw3mv8
+	bra	snw3mv9
+
+snw3mv7	incb
+	bra	snw3mv9
+
+snw3mv8	decb
+
+snw3mv9	pshs	d
+	jsr	bgcolck
+	bcs	snw3mva
+
+	ldx	#xmstpos
+	jsr	spcolck
+	bcc	snw3mvb
+
+snw3mva	leas	2,s
 	bra	snw3mvx
 
-snw3mv7	puls	d
+snw3mvb	puls	d
 	std	snw3pos
 
 snw3mvx	rts
@@ -1074,6 +1097,7 @@ bgclmap	rmb	plyfmsz
 playpos	rmb	2
 xmstpos	rmb	2
 snw1tgt	rmb	2
+snw3tgt	rmb	2
 
 snw1pos	rmb	2
 snw2pos	rmb	2
