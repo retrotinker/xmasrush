@@ -591,51 +591,79 @@ snw3mvx	rts
 * Move snowman 4
 *
 snw4mov	dec	sn4mcnt
-	bne	snw4mvx
+	lbne	snw4mvx
 
 	lda	#SNMDRST
 	sta	sn4mcnt
 
 	ldd	snw4pos
-	tst	sn4mdir
-	bne	snw4mv1
+	cmpa	snw4tgt
+	blt	snw4mv1
+	bgt	snw4mv2
 
-	inca
-	bra	snw4mv2
+	jsr	lfsrget
+	anda	#$07
+	adda	#$0b
+	sta	snw4tgt
+	lda	snw4pos
+	bra	snw4mv3
 
-snw4mv1	deca
+snw4mv1	inca
+	bra	snw4mv3
 
-snw4mv2	pshs	a
-	lda	#GMFXMTR
-	bita	gamflgs
-	bne	snw4mv5
+snw4mv2	deca
 
-snw4mv3	cmpb	playpos+1
-	bge	snw4mv4
-
-	incb
-	bra	snw4mv5
-
-snw4mv4	beq	snw4mv5
-	decb
-
-snw4mv5	puls	a
-	cmpb	#$1e
-	bgt	snw4mv7
-
-	pshs	d
+snw4mv3	pshs	d
 	jsr	bgcolck
-	bcs	snw4mv6
+	bcs	snw4mv4
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw4mv8
+	bcc	snw4mv5
 
-snw4mv6	leas	2,s
-snw4mv7	com	sn4mdir
+snw4mv4	leas	2,s
+	jsr	lfsrget
+	anda	#$07
+	adda	#$0b
+	sta	snw4tgt
+	ldd	snw4pos
+	bra	snw4mv6
+
+snw4mv5	puls	d
+	std	snw4pos
+
+snw4mv6	cmpb	snw4tgt+1
+	blt	snw4mv7
+	bgt	snw4mv8
+
+	jsr	lfsrget
+	anda	#$07
+	adda	#$17
+	sta	snw4tgt+1
+	lda	snw4pos
+	bra	snw4mv9
+
+snw4mv7	incb
+	bra	snw4mv9
+
+snw4mv8	decb
+
+snw4mv9	pshs	d
+	jsr	bgcolck
+	bcs	snw4mva
+
+	ldx	#xmstpos
+	jsr	spcolck
+	bcc	snw4mvb
+
+snw4mva	leas	2,s
+	jsr	lfsrget
+	anda	#$07
+	adda	#$17
+	sta	snw4tgt+1
 	bra	snw4mvx
 
-snw4mv8	puls	d
+snw4mvb	puls	d
 	std	snw4pos
 
 snw4mvx	rts
@@ -1129,6 +1157,7 @@ playpos	rmb	2
 xmstpos	rmb	2
 snw1tgt	rmb	2
 snw3tgt	rmb	2
+snw4tgt	rmb	2
 
 snw1pos	rmb	2
 snw2pos	rmb	2
