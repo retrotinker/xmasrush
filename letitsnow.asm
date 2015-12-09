@@ -122,10 +122,6 @@ bgsetup	jsr	clrscrn		clear video buffers
 	sta	sn3mcnt
 	sta	sn4mcnt
 
-	clr	sn1mdir
-	clr	sn3mdir
-	clr	sn4mdir
-
 	ldd	playpos
 	std	snw1tgt
 
@@ -1168,9 +1164,5 @@ sn1mcnt	rmb	1
 sn2mcnt	rmb	1
 sn3mcnt	rmb	1
 sn4mcnt	rmb	1
-
-sn1mdir rmb	1
-sn3mdir rmb	1
-sn4mdir rmb	1
 
 	end	START
