@@ -541,31 +541,37 @@ snw4mov	dec	sn4mcnt
 
 snw4mv1	deca
 
-snw4mv2	cmpb	playpos+1
-	bge	snw4mv3
+snw4mv2	pshs	a
+	lda	#GMFXMTR
+	bita	gamflgs
+	bne	snw4mv5
+
+snw4mv3	cmpb	playpos+1
+	bge	snw4mv4
 
 	incb
-	bra	snw4mv4
+	bra	snw4mv5
 
-snw4mv3	beq	snw4mv4
+snw4mv4	beq	snw4mv5
 	decb
 
-snw4mv4	cmpb	#$1e
-	bgt	snw4mv6
+snw4mv5	puls	a
+	cmpb	#$1e
+	bgt	snw4mv7
 
 	pshs	d
 	jsr	bgcolck
-	bcs	snw4mv5
+	bcs	snw4mv6
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw4mv7
+	bcc	snw4mv8
 
-snw4mv5	leas	2,s
-snw4mv6	com	sn4mdir
+snw4mv6	leas	2,s
+snw4mv7	com	sn4mdir
 	bra	snw4mvx
 
-snw4mv7	puls	d
+snw4mv8	puls	d
 	std	snw4pos
 
 snw4mvx	rts
