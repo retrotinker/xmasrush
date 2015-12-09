@@ -126,6 +126,9 @@ bgsetup	jsr	clrscrn		clear video buffers
 	clr	sn3mdir
 	clr	sn4mdir
 
+	ldd	playpos
+	std	snw1tgt
+
 	lda	#LFSRINI
 	sta	lfsrdat
 
@@ -378,39 +381,69 @@ snw1mov	dec	sn1mcnt
 	sta	sn1mcnt
 
 	ldd	snw1pos
-	tst	sn1mdir
-	bne	snw1mv1
+	cmpa	snw1tgt
+	blt	snw1mv1
+	bgt	snw1mv2
 
-	inca
-	bra	snw1mv2
+	jsr	lfsrget
+	anda	#$1f
+	sta	snw1tgt
+	lda	snw1pos
+	bra	snw1mv3
 
-snw1mv1	deca
+snw1mv1	inca
+	bra	snw1mv3
 
-snw1mv2	cmpb	playpos+1
-	bge	snw1mv3
+snw1mv2	deca
 
-	incb
-	bra	snw1mv4
-
-snw1mv3	beq	snw1mv4
-	decb
-
-snw1mv4	cmpb	#$1e
-	bgt	snw1mv6
-
-	pshs	d
+snw1mv3	pshs	d
 	jsr	bgcolck
-	bcs	snw1mv5
+	bcs	snw1mv4
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw1mv7
+	bcc	snw1mv5
 
-snw1mv5	leas	2,s
-snw1mv6	com	sn1mdir
+snw1mv4	leas	2,s
+	jsr	lfsrget
+	anda	#$1f
+	sta	snw1tgt
+	ldd	snw1pos
+	bra	snw1mv6
+
+snw1mv5	puls	d
+	std	snw1pos
+
+snw1mv6	cmpb	snw1tgt+1
+	blt	snw1mv7
+	bgt	snw1mv8
+
+	jsr	lfsrget
+	anda	#$1f
+	sta	snw1tgt+1
+	lda	snw1pos
+	bra	snw1mv9
+
+snw1mv7	incb
+	bra	snw1mv9
+
+snw1mv8	decb
+
+snw1mv9	pshs	d
+	jsr	bgcolck
+	bcs	snw1mva
+
+	ldx	#xmstpos
+	jsr	spcolck
+	bcc	snw1mvb
+
+snw1mva	leas	2,s
+	jsr	lfsrget
+	anda	#$1e
+	sta	snw1tgt+1
 	bra	snw1mvx
 
-snw1mv7	puls	d
+snw1mvb	puls	d
 	std	snw1pos
 
 snw1mvx	rts
@@ -1040,6 +1073,7 @@ bgclmap	rmb	plyfmsz
 
 playpos	rmb	2
 xmstpos	rmb	2
+snw1tgt	rmb	2
 
 snw1pos	rmb	2
 snw2pos	rmb	2
