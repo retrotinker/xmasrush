@@ -371,12 +371,19 @@ vloop	jmp	vblank
 * Move snowman 1
 *
 snw1mov	dec	sn1mcnt
-	bne	snw1mvx
+	lbne	snw1mvx
 
 	lda	#SNMDRST
 	sta	sn1mcnt
 
-	ldd	snw1pos
+	lda	#GMFXMTR
+	bita	gamflgs
+	bne	snw1mv0
+
+	ldd	playpos
+	std	snw1tgt
+
+snw1mv0	ldd	snw1pos
 	cmpa	snw1tgt
 	blt	snw1mv1
 	bgt	snw1mv2
@@ -592,7 +599,14 @@ snw4mov	dec	sn4mcnt
 	lda	#SNMDRST
 	sta	sn4mcnt
 
-	ldd	snw4pos
+	lda	#GMFXMTR
+	bita	gamflgs
+	bne	snw4mv0
+
+	ldd	playpos
+	std	snw4tgt
+
+snw4mv0	ldd	snw4pos
 	cmpa	snw4tgt
 	blt	snw4mv1
 	bgt	snw4mv2
