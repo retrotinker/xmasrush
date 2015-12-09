@@ -32,6 +32,8 @@ VBASE	equ	$0e00
 VSIZE	equ	$0c00
 VEXTNT	equ	(2*VSIZE)
 
+LFSRINI	equ	$90
+
 START	equ	(VBASE+VEXTNT)
 
 	org	START
@@ -123,6 +125,9 @@ bgsetup	jsr	clrscrn		clear video buffers
 	clr	sn1mdir
 	clr	sn3mdir
 	clr	sn4mdir
+
+	lda	#LFSRINI
+	sta	lfsrdat
 
 	lda	#(GMFXMTR+GMFSNW1+GMFSNW2+GMFSNW3+GMFSNW4)
 	sta	gamflgs
@@ -907,6 +912,36 @@ plflxck	dec	,s		check for end of map data
 	rts
 
 *
+* Advance the LFSR value and return pseudo-random value
+*
+*	A returns pseudo-random value
+*	B gets clobbered
+*
+* 	Wikipedia article on LFSR cites this polynomial for a maximal 8-bit LFSR:
+*
+*		x8 + x6 + x5 + x4 + 1
+*
+*	http://en.wikipedia.org/wiki/Linear_feedback_shift_register
+*
+lfsrget	lda	lfsrdat		Get MSB of LFSR data
+	anda	#$80		Capture x8 of LFSR polynomial
+	lsra
+	lsra
+	eora	lfsrdat		Capture X6 of LFSR polynomial
+	lsra
+	eora	lfsrdat		Capture X5 of LFSR polynomial
+	lsra
+	eora	lfsrdat		Capture X4 of LFSR polynomial
+	lsra			Move result to Carry bit of CC
+	lsra
+	lsra
+	lsra
+	lda	lfsrdat		Get all of LFSR data
+	rola			Shift result into 8-bit LFSR
+	sta	lfsrdat		Store the result
+	rts
+
+*
 * Data Declarations
 *
 snowman	fcb	$05,$40
@@ -984,6 +1019,8 @@ ersptrs	fdb	ersary0,ersary1
 * Variable Declarations
 *
 vfield	rmb	1
+
+lfsrdat	rmb	1
 
 inpflgs	rmb	1
 gamflgs	rmb	1
