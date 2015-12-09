@@ -405,7 +405,19 @@ snw1mv3	pshs	d
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw1mv5
+	bcs	snw1mv4
+
+	ldd	snw2pos
+	cmpd	,s
+	beq	snw1mv4
+
+	ldd	snw3pos
+	cmpd	,s
+	beq	snw1mv4
+
+	ldd	snw4pos
+	cmpd	,s
+	bne	snw1mv5
 
 snw1mv4	leas	2,s
 	jsr	lfsrget
@@ -438,7 +450,19 @@ snw1mv9	pshs	d
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw1mvb
+	bcs	snw1mva
+
+	ldd	snw2pos
+	cmpd	,s
+	beq	snw1mva
+
+	ldd	snw3pos
+	cmpd	,s
+	beq	snw1mva
+
+	ldd	snw4pos
+	cmpd	,s
+	bne	snw1mvb
 
 snw1mva	leas	2,s
 	jsr	lfsrget
@@ -455,7 +479,7 @@ snw1mvx	rts
 * Move snowman 2
 *
 snw2mov	dec	sn2mcnt
-	bne	snw2mvx
+	lbne	snw2mvx
 
 	lda	#SNMDRST
 	sta	sn2mcnt
@@ -477,7 +501,19 @@ snw2mv3	pshs	d
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw2mv5
+	bcs	snw2mv4
+
+	ldd	snw1pos
+	cmpd	,s
+	beq	snw2mv4
+
+	ldd	snw3pos
+	cmpd	,s
+	beq	snw2mv4
+
+	ldd	snw4pos
+	cmpd	,s
+	bne	snw2mv5
 
 snw2mv4	leas	2,s
 	ldd	snw2pos
@@ -502,7 +538,19 @@ snw2mv9	pshs	d
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw2mvb
+	bcs	snw2mva
+
+	ldd	snw1pos
+	cmpd	,s
+	beq	snw2mva
+
+	ldd	snw3pos
+	cmpd	,s
+	beq	snw2mva
+
+	ldd	snw4pos
+	cmpd	,s
+	bne	snw2mvb
 
 snw2mva	leas	2,s
 	bra	snw2mvx
@@ -516,7 +564,7 @@ snw2mvx	rts
 * Move snowman 3
 *
 snw3mov	dec	sn3mcnt
-	bne	snw3mvx
+	lbne	snw3mvx
 
 	lda	#SNMDRST
 	sta	sn3mcnt
@@ -555,7 +603,19 @@ snw3mv5	pshs	d
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw3mv7
+	bcs	snw3mv6
+
+	ldd	snw1pos
+	cmpd	,s
+	beq	snw3mv6
+
+	ldd	snw2pos
+	cmpd	,s
+	beq	snw3mv6
+
+	ldd	snw4pos
+	cmpd	,s
+	bne	snw3mv7
 
 snw3mv6	leas	2,s
 	ldd	snw3pos
@@ -580,7 +640,19 @@ snw3mvb	pshs	d
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw3mvd
+	bcs	snw3mvc
+
+	ldd	snw1pos
+	cmpd	,s
+	beq	snw3mvc
+
+	ldd	snw2pos
+	cmpd	,s
+	beq	snw3mvc
+
+	ldd	snw4pos
+	cmpd	,s
+	bne	snw3mvd
 
 snw3mvc	leas	2,s
 	bra	snw3mvx
@@ -629,7 +701,19 @@ snw4mv3	pshs	d
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw4mv5
+	bcs	snw4mv4
+
+	ldd	snw1pos
+	cmpd	,s
+	beq	snw4mv4
+
+	ldd	snw2pos
+	cmpd	,s
+	beq	snw4mv4
+
+	ldd	snw3pos
+	cmpd	,s
+	bne	snw4mv5
 
 snw4mv4	leas	2,s
 	jsr	lfsrget
@@ -664,7 +748,19 @@ snw4mv9	pshs	d
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw4mvb
+	bcs	snw4mva
+
+	ldd	snw1pos
+	cmpd	,s
+	beq	snw4mva
+
+	ldd	snw2pos
+	cmpd	,s
+	beq	snw4mva
+
+	ldd	snw3pos
+	cmpd	,s
+	bne	snw4mvb
 
 snw4mva	leas	2,s
 	jsr	lfsrget
