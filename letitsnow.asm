@@ -121,7 +121,6 @@ bgsetup	jsr	clrscrn		clear video buffers
 	sta	sn4mcnt
 
 	clr	sn1mdir
-	clr	sn2mdir
 	clr	sn3mdir
 	clr	sn4mdir
 
@@ -421,39 +420,53 @@ snw2mov	dec	sn2mcnt
 	sta	sn2mcnt
 
 	ldd	snw2pos
-	tst	sn2mdir
-	bne	snw2mv1
+	cmpa	playpos
+	blt	snw2mv1
+	bgt	snw2mv2
+	bra	snw2mv3
 
-	incb
-	bra	snw2mv2
+snw2mv1	inca
+	bra	snw2mv3
 
-snw2mv1	decb
+snw2mv2	deca
 
-snw2mv2	cmpa	playpos
-	bge	snw2mv3
-
-	inca
-	bra	snw2mv4
-
-snw2mv3	beq	snw2mv4
-	deca
-
-snw2mv4	cmpb	#$1e
-	bgt	snw2mv6
-
-	pshs	d
+snw2mv3	pshs	d
 	jsr	bgcolck
-	bcs	snw2mv5
+	bcs	snw2mv4
 
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	snw2mv7
+	bcc	snw2mv5
 
-snw2mv5	leas	2,s
-snw2mv6	com	sn2mdir
+snw2mv4	leas	2,s
+	ldd	snw2pos
+	bra	snw2mv6
+
+snw2mv5	puls	d
+	std	snw2pos
+
+snw2mv6	cmpb	playpos+1
+	blt	snw2mv7
+	bgt	snw2mv8
+	bra	snw2mv9
+
+snw2mv7	incb
+	bra	snw2mv9
+
+snw2mv8	decb
+
+snw2mv9	pshs	d
+	jsr	bgcolck
+	bcs	snw2mva
+
+	ldx	#xmstpos
+	jsr	spcolck
+	bcc	snw2mvb
+
+snw2mva	leas	2,s
 	bra	snw2mvx
 
-snw2mv7	puls	d
+snw2mvb	puls	d
 	std	snw2pos
 
 snw2mvx	rts
@@ -996,7 +1009,6 @@ sn3mcnt	rmb	1
 sn4mcnt	rmb	1
 
 sn1mdir rmb	1
-sn2mdir rmb	1
 sn3mdir rmb	1
 sn4mdir rmb	1
 
