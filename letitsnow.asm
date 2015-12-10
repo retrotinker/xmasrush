@@ -350,24 +350,35 @@ vcalc12	ldx	#snw4pos
 
 vcalc13	leas	2,s
 
-vcalc14	equ	*
+vloop	equ	*
+
+	ifdef MON09
+	jsr	chkuart
+	endif
+
+	jmp	vblank
 
 	ifdef MON09
 * Check for user break (development only)
 chkuart	lda	$ff69		Check for serial port activity
 	bita	#$08
-	beq	vloop
+	beq	chkurex
 	lda	$ff68
 	jmp	[$fffe]		Re-enter monitor
+chkurex	rts
 	endif
-
-vloop	jmp	vblank
 
 win 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
-	bne	win
+	beq	winexit
 
-	jmp	START
+	ifdef MON09
+	jsr	chkuart
+	endif
+
+	bra	win
+
+winexit	jmp	START
 
 *
 * Move snowman 1
