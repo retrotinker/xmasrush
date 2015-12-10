@@ -284,10 +284,7 @@ vcalc3	ldb	inpflgs		test for movement up
 	beq	vcalc4
 	dec	1,s		indicate up by altering position
 
-vcalc4	ldb	inpflgs		test for button push
-	andb	#INPUTBT
-	beq	vcalc5
-	jmp	START
+vcalc4	equ	*
 
 vcalc5	ldd	,s		check for pending collision
 	jsr	bgcolck
