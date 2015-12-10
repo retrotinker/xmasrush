@@ -322,28 +322,28 @@ vcalc9	ldx	#snw1pos
 	bcc	vcalc10
 
 	leas	2,s
-	jmp	START
+	jmp	loss
 
 vcalc10	ldx	#snw2pos
 	jsr	spcolck
 	bcc	vcalc11
 
 	leas	2,s
-	jmp	START
+	jmp	loss
 
 vcalc11	ldx	#snw3pos
 	jsr	spcolck
 	bcc	vcalc12
 
 	leas	2,s
-	jmp	START
+	jmp	loss
 
 vcalc12	ldx	#snw4pos
 	jsr	spcolck
 	bcc	vcalc13
 
 	leas	2,s
-	jmp	START
+	jmp	loss
 
 vcalc13	leas	2,s
 
@@ -376,6 +376,18 @@ win 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bra	win
 
 winexit	jmp	START
+
+loss 	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	lossext
+
+	ifdef MON09
+	jsr	chkuart
+	endif
+
+	bra	lossext
+
+lossext	jmp	START
 
 *
 * Move snowman 1
