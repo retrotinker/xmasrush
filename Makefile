@@ -2,8 +2,8 @@
 
 CFLAGS=-Wall
 
-TARGETS=letitsnow.bin letitsnow.s19
-EXTRA=letitsnow.2k letitsnow.4k
+TARGETS=xmasrush.bin xmasrush.dsk xmasrush.s19
+EXTRA=xmasrush.2k xmasrush.4k
 
 all: $(TARGETS)
 
@@ -21,19 +21,19 @@ all: $(TARGETS)
 	cecb copy -2 -b -g $< \
 		$(@),$$(echo $< | cut -c1-8 | tr [:lower:] [:upper:])
 
-letitsnow.dsk: letitsnow.bin COPYING
+xmasrush.dsk: xmasrush.bin COPYING
 	rm -f $@
 	decb dskini $@
 	decb copy -2 -b $< $@,$$(echo $< | tr [:lower:] [:upper:])
 	decb copy -3 -a -l COPYING $@,COPYING
 
-letitsnow.2k: letitsnow.ccc
+xmasrush.2k: xmasrush.ccc
 	rm -f $@
 	dd if=/dev/zero bs=2k count=1 | \
 		tr '\000' '\377' > $@
 	dd if=$< of=$@ conv=notrunc
 
-letitsnow.4k: letitsnow.2k
+xmasrush.4k: xmasrush.2k
 	cat $< > $@
 	cat $< >> $@
 
