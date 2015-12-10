@@ -234,11 +234,7 @@ vcalc	lda	#GMFXMTR
 	cmpa	#$1e
 	blt	vcalc0
 
-	lda	PIA0D0		read from the PIA connected to the joystick buttons
-	bita	#$02		test for left joystick button press
-	lbne	vcalc14
-
-	jmp	START
+	jmp	win
 
 vcalc0	jsr	inpread		read player input for next frame
 
@@ -366,6 +362,12 @@ chkuart	lda	$ff69		Check for serial port activity
 	endif
 
 vloop	jmp	vblank
+
+win 	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	bne	win
+
+	jmp	START
 
 *
 * Move snowman 1
