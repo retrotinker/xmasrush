@@ -38,6 +38,8 @@ START	equ	(VBASE+VEXTNT)
 
 	org	START
 
+	jsr	intro
+
 hwinit	orcc	#$50		disable IRQ and FIRQ
 
 	lda	PIA1C0
@@ -388,6 +390,41 @@ loss 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bra	lossext
 
 lossext	jmp	START
+
+*
+* Show intro screen
+*
+intro	ldx	#intscrn
+	ldy	#$0400
+intsclp	lda	,x+
+	sta	,y+
+	cmpx	#(intscrn+512)
+	blt	intsclp
+
+	clr	$ffc0		clr v0
+	clr	$ffc2		clr v1
+	clr	$ffc4		clr v2
+	clr	PIA1D1		setup vdg
+
+	clr	$ffc6		set video base to $0e00
+	clr	$ffc9
+	clr	$ffca
+	clr	$ffcc
+	clr	$ffce
+	clr	$ffd0
+	clr	$ffd2
+
+intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	intrext
+
+	ifdef MON09
+	jsr	chkuart
+	endif
+
+	bra	intstlp
+
+intrext	rts
 
 *
 * Move snowman 1
@@ -1246,7 +1283,6 @@ ersptrs	fdb	ersary0,ersary1
 *
 * 	generated @ http://cocobotomy.roust-it.dk/sgedit/
 *
-	org	$0400
 intscrn	fcb	$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80
 	fcb	$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$9f,$9a,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80
 	fcb	$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$87,$8f,$8f,$82,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80
