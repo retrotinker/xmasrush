@@ -1,6 +1,8 @@
 	nam	letitsnow
 	ttl	Let it snow!
 
+TIMVAL	equ	$0112		Extended BASIC's free-running time counter
+
 PIA0D0	equ	$ff00		CoCo hardware definitions
 PIA0C0	equ	$ff01
 PIA0D1	equ	$ff02
@@ -31,8 +33,6 @@ SNMDRST	equ	$10		reset value for snowman move delay counter
 VBASE	equ	$0e00
 VSIZE	equ	$0c00
 VEXTNT	equ	(2*VSIZE)
-
-LFSRINI	equ	$90
 
 START	equ	(VBASE+VEXTNT)
 
@@ -127,8 +127,10 @@ bgsetup	jsr	clrscrn		clear video buffers
 	ldd	playpos
 	std	snw1tgt
 
-	lda	#LFSRINI
-	sta	lfsrdat
+	ldd	TIMVAL		Seed the LFSR data
+	bne	lfsrini		Can't tolerate a zero-value LFSR seed...
+	ldb	#$01
+lfsrini	stb	lfsrdat
 
 	lda	#(GMFXMTR+GMFSNW1+GMFSNW2+GMFSNW3+GMFSNW4)
 	sta	gamflgs
