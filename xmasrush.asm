@@ -130,10 +130,10 @@ bgsetup	jsr	clrscrn		clear video buffers
 	ldd	playpos
 	std	snw1tgt
 
-	ldd	TIMVAL		Seed the LFSR data
+	ldb	TIMVAL+1	Seed the LFSR data
 	bne	lfsrini		Can't tolerate a zero-value LFSR seed...
 	ldb	#$01
-lfsrini	stb	lfsrdat
+lfsrini	stb	TIMVAL+1
 
 	lda	#(GMFXMTR+GMFSNW1+GMFSNW2+GMFSNW3+GMFSNW4)
 	sta	gamflgs
@@ -1229,22 +1229,22 @@ plflxck	dec	,s		check for end of map data
 *
 *	http://en.wikipedia.org/wiki/Linear_feedback_shift_register
 *
-lfsrget	lda	lfsrdat		Get MSB of LFSR data
+lfsrget	lda	TIMVAL+1	Get MSB of LFSR data
 	anda	#$80		Capture x8 of LFSR polynomial
 	lsra
 	lsra
-	eora	lfsrdat		Capture X6 of LFSR polynomial
+	eora	TIMVAL+1	Capture X6 of LFSR polynomial
 	lsra
-	eora	lfsrdat		Capture X5 of LFSR polynomial
+	eora	TIMVAL+1	Capture X5 of LFSR polynomial
 	lsra
-	eora	lfsrdat		Capture X4 of LFSR polynomial
+	eora	TIMVAL+1	Capture X4 of LFSR polynomial
 	lsra			Move result to Carry bit of CC
 	lsra
 	lsra
 	lsra
-	lda	lfsrdat		Get all of LFSR data
+	lda	TIMVAL+1	Get all of LFSR data
 	rola			Shift result into 8-bit LFSR
-	sta	lfsrdat		Store the result
+	sta	TIMVAL+1	Store the result
 	rts
 
 *
@@ -1347,8 +1347,6 @@ intscrn	fcb	$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,
 * Variable Declarations
 *
 vfield	rmb	1
-
-lfsrdat	rmb	1
 
 inpflgs	rmb	1
 gamflgs	rmb	1
