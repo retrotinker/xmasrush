@@ -369,29 +369,47 @@ chkuart	lda	$ff69		Check for serial port activity
 chkurex	rts
 	endif
 
-win 	lda	PIA0D0		read from the PIA connected to the joystick buttons
-	bita	#$02		test for left joystick button press
-	beq	winexit
+win	lda	vfield		load previous field indicator
 
-	ifdef MON09
-	jsr	chkuart
-	endif
+	deca			switch video field indicator
+	bne	win1
 
-	bra	win
+	clr	$ffc9		reset video base to $0e00
+	clr	$ffcc
 
-winexit	jmp	START
+	bra	winwait
 
-loss 	lda	PIA0D0		read from the PIA connected to the joystick buttons
-	bita	#$02		test for left joystick button press
-	beq	lossext
+win1	clr	$ffc8		reset video base to $1a00
+	clr	$ffcd
 
-	ifdef MON09
-	jsr	chkuart
-	endif
+winwait	lda	#$80
+win2	tst	PIA0D1		wait for vsync interrupt
+	sync
+	deca
+	bne	win2
 
-	bra	lossext
+	jmp	START
 
-lossext	jmp	START
+loss	lda	vfield		load previous field indicator
+
+	deca			switch video field indicator
+	bne	loss1
+
+	clr	$ffc9		reset video base to $0e00
+	clr	$ffcc
+
+	bra	losswai
+
+loss1	clr	$ffc8		reset video base to $1a00
+	clr	$ffcd
+
+losswai	lda	#$80
+loss2	tst	PIA0D1		wait for vsync interrupt
+	sync
+	deca
+	bne	loss2
+
+	jmp	START
 
 *
 * Show intro screen
