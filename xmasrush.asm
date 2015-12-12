@@ -30,6 +30,7 @@ GMFSNW4	equ	$10
 MVDLRST	equ	$08		reset value for movement delay counter
 SNMDRST	equ	$10		reset value for snowman move delay counter
 
+TXTBASE	equ	$0400
 VBASE	equ	$0e00
 VSIZE	equ	$0c00
 VEXTNT	equ	(2*VSIZE)
@@ -418,7 +419,7 @@ intro	tst	PIA0D1		wait for vsync interrupt
 	sync
 
 	ldx	#intscrn
-	ldy	#$0400
+	ldy	#TXTBASE
 intsclp	lda	,x+
 	sta	,y+
 	cmpx	#(intscrn+512)
