@@ -38,10 +38,6 @@ START	equ	(VBASE+VEXTNT)
 
 	org	START
 
-	jsr	intro
-
-hwinit	orcc	#$50		disable IRQ and FIRQ
-
 	lda	PIA1C0
 	anda	#$fb
 	sta	PIA1C0
@@ -51,6 +47,20 @@ hwinit	orcc	#$50		disable IRQ and FIRQ
 	lda	PIA1C0
 	ora	#$04
 	sta	PIA1C0
+
+	ldb	PIA0C0		disable hsync interrupt generation
+	andb	#$fc
+	stb	PIA0C0
+	tst	PIA0D0
+	lda	PIA0C1		enable vsync interrupt generation
+	ora	#$01
+	sta	PIA0C1
+	tst	PIA0D1
+	sync			wait for vsync interrupt
+
+	jsr	intro
+
+hwinit	orcc	#$50		disable IRQ and FIRQ
 
 	clr	$ffc0		clr v0
 	clr	$ffc2		clr v1
@@ -65,16 +75,6 @@ hwinit	orcc	#$50		disable IRQ and FIRQ
 	clr	$ffce
 	clr	$ffd0
 	clr	$ffd2
-
-	ldb	PIA0C0		disable hsync interrupt generation
-	andb	#$fc
-	stb	PIA0C0
-	tst	PIA0D0
-	lda	PIA0C1		enable vsync interrupt generation
-	ora	#$01
-	sta	PIA0C1
-	tst	PIA0D1
-	sync			wait for vsync interrupt
 
 	lda	#$01		init video field indicator
 	sta	vfield
@@ -414,7 +414,10 @@ loss2	tst	PIA0D1		wait for vsync interrupt
 *
 * Show intro screen
 *
-intro	ldx	#intscrn
+intro	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	ldx	#intscrn
 	ldy	#$0400
 intsclp	lda	,x+
 	sta	,y+
