@@ -35,6 +35,8 @@ VBASE	equ	$0e00
 VSIZE	equ	$0c00
 VEXTNT	equ	(2*VSIZE)
 
+PLAYPOS	equ	(TXTBASE+(10*32)+24)
+
 START	equ	(VBASE+VEXTNT)
 
 	org	START
@@ -438,6 +440,7 @@ intsclp	lda	,x+
 	clr	$ffd0
 	clr	$ffd2
 
+	ldb	#$20
 intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	intrext
@@ -445,6 +448,22 @@ intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	ifdef MON09
 	jsr	chkuart
 	endif
+
+	tst	PIA0D1
+	sync
+
+	decb
+	bne	intstlp
+
+	ldb	#$04
+	ldx	#(PLAYPOS-1)
+intstl1	lda	b,x
+	eora	#$40
+	sta	b,x
+	decb
+	bne	intstl1
+
+	ldb	#$20
 
 	bra	intstlp
 
