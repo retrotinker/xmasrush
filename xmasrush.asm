@@ -35,6 +35,11 @@ VBASE	equ	$0e00
 VSIZE	equ	$0c00
 VEXTNT	equ	(2*VSIZE)
 
+IS1BASE	equ	(TXTBASE+5*32+3)
+IS2BASE	equ	(TXTBASE+6*32+3)
+IS3BASE	equ	(TXTBASE+7*32+3)
+IS4BASE	equ	(TXTBASE+10*32+10)
+
 PLAYPOS	equ	(TXTBASE+(10*32)+24)
 
 START	equ	(VBASE+VEXTNT)
@@ -62,6 +67,8 @@ START	equ	(VBASE+VEXTNT)
 	sync			wait for vsync interrupt
 
 	jsr	intro
+
+	jsr	instscn
 
 hwinit	orcc	#$50		disable IRQ and FIRQ
 
@@ -468,6 +475,59 @@ intstl1	lda	b,x
 	bra	intstlp
 
 intrext	rts
+
+*
+* Clear text screen
+*
+clrtscn	lda	#' '
+	ldy	#TXTBASE
+clrtslp	sta	,y+
+	cmpy	#(TXTBASE+512)
+	blt	clrtslp
+
+	rts
+
+*
+* Draw string
+*
+drawstr	lda	,x+
+	beq	drawstx
+	sta	,y+
+	bra	drawstr
+
+drawstx	rts
+
+*
+* Show instructions
+*
+instscn	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	jsr	clrtscn
+
+	ldx	#instrs1
+	ldy	#IS1BASE
+	jsr	drawstr
+
+	ldx	#instrs2
+	ldy	#IS2BASE
+	jsr	drawstr
+
+	ldx	#instrs3
+	ldy	#IS3BASE
+	jsr	drawstr
+
+	ldx	#instrs4
+	ldy	#IS4BASE
+	jsr	drawstr
+
+inswait	lda	#$80
+inswai2	tst	PIA0D1		wait for vsync interrupt
+	sync
+	deca
+	bne	inswai2
+
+	rts
 
 *
 * Move snowman 1
@@ -1345,6 +1405,20 @@ intscrn	fcb	$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,
 	fcb	$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$f5,$ff,$ff,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80
 	fcb	$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$f5,$ff,$ff,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80
 	fcb	$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80,$80
+
+*
+* Instruction screen data
+*
+instrs1	fcb	$05,$0e,$14,$05,$12,$20,$14,$08,$05,$20,$06,$0f,$12,$05,$13,$14
+	fcb	$2c,$00
+
+instrs2	fcb	$14,$01,$0b,$05,$20,$14,$08,$05,$20,$0c,$01,$13,$14,$20,$18,$0d
+	fcb	$01,$13,$20,$14,$12,$05,$05,$2c,$00
+
+instrs3	fcb	$05,$13,$03,$01,$10,$05,$20,$14,$08,$05,$20,$05,$16,$09,$0c,$20
+	fcb	$13,$0e,$0f,$17,$0d,$05,$0e,$2e,$2e,$2e,$00
+
+instrs4	fcb	$03,$01,$12,$10,$05,$20,$01,$12,$02,$0f,$12,$05,$13,$21,$00
 
 *
 * Variable Declarations
