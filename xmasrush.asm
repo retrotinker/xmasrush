@@ -474,7 +474,11 @@ intstl1	lda	b,x
 
 	bra	intstlp
 
-intrext	rts
+intrext	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	intrext
+
+	rts
 
 *
 * Clear text screen
