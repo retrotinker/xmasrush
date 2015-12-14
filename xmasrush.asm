@@ -869,7 +869,7 @@ snw4mov	dec	sn4mcnt
 	bne	snw4mv0
 
 	ldd	playpos
-	cmpb	#$16
+	cmpb	#$1a
 	blt	snw4mv0
 
 	std	snw4tgt
