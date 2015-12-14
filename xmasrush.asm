@@ -40,6 +40,10 @@ IS2BASE	equ	(TXTBASE+6*32+3)
 IS3BASE	equ	(TXTBASE+7*32+3)
 IS4BASE	equ	(TXTBASE+10*32+10)
 
+ATSTBAS	equ	(TXTBASE+5*32+10)
+SZSTBAS	equ	(TXTBASE+7*32+10)
+ESSTBAS	equ	(TXTBASE+9*32+10)
+
 PLAYPOS	equ	(TXTBASE+(10*32)+24)
 
 START	equ	(VBASE+VEXTNT)
@@ -66,7 +70,16 @@ START	equ	(VBASE+VEXTNT)
 	tst	PIA0D1
 	sync			wait for vsync interrupt
 
-	jsr	intro
+	clr	atmpcnt		clear results tallies
+	clr	seizcnt
+	clr	escpcnt
+
+restart	jsr	intro
+
+	lda	atmpcnt
+	adda	#$01
+	daa
+	sta	atmpcnt
 
 	jsr	instscn
 
@@ -379,7 +392,16 @@ chkuart	lda	$ff69		Check for serial port activity
 chkurex	rts
 	endif
 
-win	lda	vfield		load previous field indicator
+win	lda	seizcnt		bump seizure and escape counts
+	adda	#$01
+	daa
+	sta	seizcnt
+	lda	escpcnt
+	adda	#$01
+	daa
+	sta	escpcnt
+
+	lda	vfield		load previous field indicator
 
 	deca			switch video field indicator
 	bne	win1
@@ -407,9 +429,20 @@ winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	winexit
 
-	jmp	START
+	jsr	talyscn
 
-loss	lda	vfield		load previous field indicator
+	jmp	restart
+
+loss	lda	#GMFXMTR	bump seizure count, if appropriate
+	bita	gamflgs
+	bne	loss0
+
+	lda	seizcnt
+	adda	#$01
+	daa
+	sta	seizcnt
+
+loss0	lda	vfield		load previous field indicator
 
 	deca			switch video field indicator
 	bne	loss1
@@ -437,7 +470,9 @@ lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	lossext
 
-	jmp	START
+	jsr	talyscn
+
+	jmp	restart
 
 *
 * Show intro screen
@@ -457,7 +492,7 @@ intsclp	lda	,x+
 	clr	$ffc4		clr v2
 	clr	PIA1D1		setup vdg
 
-	clr	$ffc6		set video base to $0e00
+	clr	$ffc6		set video base to $0400
 	clr	$ffc9
 	clr	$ffca
 	clr	$ffcc
@@ -558,6 +593,89 @@ insexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	insexit
 
+	rts
+
+*
+* Show BCD encoded number on screen
+*
+bcdshow	pshs	a
+	anda	#$f0
+	lsra
+	lsra
+	lsra
+	lsra
+	adda	#$30
+	sta	,y+
+	puls	a
+	anda	#$0f
+	adda	#$30
+	sta	,y
+	rts
+
+*
+* Show tallies
+*
+talyscn	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	jsr	clrtscn
+
+	ldx	#atmpstr
+	ldy	#ATSTBAS
+	jsr	drawstr
+
+	leay	2,y
+	lda	atmpcnt
+	jsr	bcdshow
+
+	ldx	#seizstr
+	ldy	#SZSTBAS
+	jsr	drawstr
+
+	leay	2,y
+	lda	seizcnt
+	jsr	bcdshow
+
+	ldx	#escpstr
+	ldy	#ESSTBAS
+	jsr	drawstr
+
+	leay	3,y
+	lda	escpcnt
+	jsr	bcdshow
+
+	clr	$ffc0		clr v0
+	clr	$ffc2		clr v1
+	clr	$ffc4		clr v2
+	clr	PIA1D1		setup vdg
+
+	clr	$ffc6		set video base to $0400
+	clr	$ffc9
+	clr	$ffca
+	clr	$ffcc
+	clr	$ffce
+	clr	$ffd0
+	clr	$ffd2
+
+tlywait	ldb	#$80
+tlywai2	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	tlyexit
+
+	decb
+	bne	tlywai2
+
+	andcc	#$fe
+	rts
+
+tlyexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	tlyexit
+
+	orcc	#$01
 	rts
 
 *
@@ -1452,6 +1570,15 @@ instrs3	fcb	$05,$13,$03,$01,$10,$05,$20,$14,$08,$05,$20,$05,$16,$09,$0c,$20
 instrs4	fcb	$03,$01,$12,$10,$05,$20,$01,$12,$02,$0f,$12,$05,$13,$21,$00
 
 *
+* Tally screen data
+*
+atmpstr	fcb	$01,$14,$14,$05,$0d,$10,$14,$13,$00
+
+seizstr	fcb	$13,$05,$09,$1a,$15,$12,$05,$13,$00
+
+escpstr	fcb	$05,$13,$03,$01,$10,$05,$13,$00
+
+*
 * Variable Declarations
 *
 vfield	rmb	1
@@ -1481,5 +1608,9 @@ sn1mcnt	rmb	1
 sn2mcnt	rmb	1
 sn3mcnt	rmb	1
 sn4mcnt	rmb	1
+
+atmpcnt	rmb	1
+seizcnt	rmb	1
+escpcnt	rmb	1
 
 	end	START
