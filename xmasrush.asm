@@ -525,11 +525,20 @@ instscn	tst	PIA0D1		wait for vsync interrupt
 	ldy	#IS4BASE
 	jsr	drawstr
 
-inswait	lda	#$80
+inswait	ldb	#$80
 inswai2	tst	PIA0D1		wait for vsync interrupt
 	sync
-	deca
+
+	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	insexit
+
+	decb
 	bne	inswai2
+
+insexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	insexit
 
 	rts
 
