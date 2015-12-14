@@ -392,11 +392,20 @@ win	lda	vfield		load previous field indicator
 win1	clr	$ffc8		reset video base to $1a00
 	clr	$ffcd
 
-winwait	lda	#$80
+winwait	ldb	#$80
 win2	tst	PIA0D1		wait for vsync interrupt
 	sync
-	deca
+
+	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	winexit
+
+	decb
 	bne	win2
+
+winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	winexit
 
 	jmp	START
 
@@ -413,11 +422,20 @@ loss	lda	vfield		load previous field indicator
 loss1	clr	$ffc8		reset video base to $1a00
 	clr	$ffcd
 
-losswai	lda	#$80
+losswai	ldb	#$80
 loss2	tst	PIA0D1		wait for vsync interrupt
 	sync
-	deca
+
+	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	lossext
+
+	decb
 	bne	loss2
+
+lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	lossext
 
 	jmp	START
 
