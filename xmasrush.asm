@@ -429,7 +429,10 @@ winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	winexit
 
+	ldd	#$0080
+	pshs	d
 	jsr	talyscn
+	leas	2,s
 
 	jmp	restart
 
@@ -470,7 +473,10 @@ lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	lossext
 
+	ldd	#$0080
+	pshs	d
 	jsr	talyscn
+	leas	2,s
 
 	jmp	restart
 
@@ -657,18 +663,22 @@ talyscn	tst	PIA0D1		wait for vsync interrupt
 	clr	$ffd0
 	clr	$ffd2
 
-tlywait	ldb	#$80
-tlywai2	tst	PIA0D1		wait for vsync interrupt
+tlywait	tst	PIA0D1		wait for vsync interrupt
 	sync
 
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	tlyexit
 
-	decb
-	bne	tlywai2
+	dec	3,s
+	bne	tlywait
+	lda	2,s
+	beq	tlytmox
+	deca
+	sta	2,s
+	bra	tlywait
 
-	andcc	#$fe
+tlytmox	andcc	#$fe
 	rts
 
 tlyexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
