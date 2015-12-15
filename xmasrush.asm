@@ -551,12 +551,31 @@ intstl1	lda	b,x
 	ldb	#$20
 
 intstl2	dec	3,s
-	bne	intstlp
+	bne	intstl3
 	lda	2,s
 	beq	intstox
 	deca
 	sta	2,s
-	bra	intstlp
+
+intstl3	lda	#$fd
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	bne	intstl4
+
+	clr	atmpcnt		clear results tallies
+	clr	seizcnt
+	clr	escpcnt
+
+	bra	intstox	
+
+intstl4	lda	#$fb
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	bne	intstlp
+
+	jmp	[$fffe]		Reset!
 
 intstox	andcc	#$fe
 	rts
