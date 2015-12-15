@@ -78,8 +78,18 @@ restart	ldd	#$0080
 	pshs	d
 	jsr	intro
 	leas	2,s
+	bcs	restrt1
 
-	lda	atmpcnt
+	tst	atmpcnt
+	beq	restart
+
+	ldd	#$0080
+	pshs	d
+	jsr	talyscn
+	leas	2,s
+	bcc	restart
+
+restrt1	lda	atmpcnt
 	adda	#$01
 	daa
 	sta	atmpcnt
