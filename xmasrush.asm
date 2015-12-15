@@ -43,6 +43,8 @@ IS4BASE	equ	(TXTBASE+10*32+10)
 ATSTBAS	equ	(TXTBASE+5*32+10)
 SZSTBAS	equ	(TXTBASE+7*32+10)
 ESSTBAS	equ	(TXTBASE+9*32+10)
+CLSTBAS	equ	(TXTBASE+14*32+6)
+BRSTBAS	equ	(TXTBASE+15*32+8)
 
 PLAYPOS	equ	(TXTBASE+(10*32)+24)
 
@@ -676,6 +678,14 @@ talyscn	tst	PIA0D1		wait for vsync interrupt
 	leay	3,y
 	lda	escpcnt
 	jsr	bcdshow
+
+	ldx	#clrstr
+	ldy	#CLSTBAS
+	jsr	drawstr
+
+	ldx	#brkstr
+	ldy	#BRSTBAS
+	jsr	drawstr
 
 	clr	$ffc0		clr v0
 	clr	$ffc2		clr v1
@@ -1614,6 +1624,12 @@ atmpstr	fcb	$01,$14,$14,$05,$0d,$10,$14,$13,$00
 seizstr	fcb	$13,$05,$09,$1a,$15,$12,$05,$13,$00
 
 escpstr	fcb	$05,$13,$03,$01,$10,$05,$13,$00
+
+clrstr	fcb	$43,$4c,$45,$41,$52,$20,$06,$0f,$12,$20,$0e,$05,$17,$20,$10,$0c
+	fcb	$01,$19,$05,$12,$00
+
+brkstr	fcb	$42,$52,$45,$41,$4b,$20,$14,$0f,$20,$05,$0e,$04,$20,$07,$01,$0d
+	fcb	$05,$00
 
 *
 * Variable Declarations
