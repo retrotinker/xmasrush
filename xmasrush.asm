@@ -274,7 +274,7 @@ vcalc	lda	#GMFXMTR
 	cmpa	#$1e
 	blt	vcalc0
 
-	jmp	win
+	lbra	win
 
 vcalc0	jsr	inpread		read player input for next frame
 
@@ -362,28 +362,28 @@ vcalc9	ldx	#snw1pos
 	bcc	vcalc10
 
 	leas	2,s
-	jmp	loss
+	lbra	loss
 
 vcalc10	ldx	#snw2pos
 	jsr	spcolck
 	bcc	vcalc11
 
 	leas	2,s
-	jmp	loss
+	lbra	loss
 
 vcalc11	ldx	#snw3pos
 	jsr	spcolck
 	bcc	vcalc12
 
 	leas	2,s
-	jmp	loss
+	lbra	loss
 
 vcalc12	ldx	#snw4pos
 	jsr	spcolck
 	bcc	vcalc13
 
 	leas	2,s
-	jmp	loss
+	lbra	loss
 
 vcalc13	leas	2,s
 
@@ -393,7 +393,7 @@ vloop	equ	*
 	jsr	chkuart
 	endif
 
-	jmp	vblank
+	lbra	vblank
 
 	ifdef MON09
 * Check for user break (development only)
@@ -449,7 +449,7 @@ winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 
 	lbcs	restrt1
 
-	jmp	restart
+	lbra	restart
 
 loss	lda	#GMFXMTR	bump seizure count, if appropriate
 	bita	gamflgs
@@ -495,7 +495,7 @@ lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 
 	lbcs	restrt1
 
-	jmp	restart
+	lbra	restart
 
 *
 * Show intro screen
