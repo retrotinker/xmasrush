@@ -712,12 +712,31 @@ tlywait	tst	PIA0D1		wait for vsync interrupt
 	beq	tlyexit
 
 	dec	3,s
-	bne	tlywait
+	bne	tlywai2
 	lda	2,s
 	beq	tlytmox
 	deca
 	sta	2,s
-	bra	tlywait
+
+tlywai2	lda	#$fd
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	bne	tlywai3
+
+	clr	atmpcnt		clear results tallies
+	clr	seizcnt
+	clr	escpcnt
+
+	lbra	talyscn
+
+tlywai3	lda	#$fb
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	bne	tlywait
+
+	jmp	[$fffe]		Reset!
 
 tlytmox	andcc	#$fe
 	rts
