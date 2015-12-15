@@ -447,6 +447,8 @@ winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	jsr	talyscn
 	leas	2,s
 
+	lbcs	restrt1
+
 	jmp	restart
 
 loss	lda	#GMFXMTR	bump seizure count, if appropriate
@@ -490,6 +492,8 @@ lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	pshs	d
 	jsr	talyscn
 	leas	2,s
+
+	lbcs	restrt1
 
 	jmp	restart
 
