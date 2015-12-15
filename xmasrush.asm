@@ -74,7 +74,10 @@ START	equ	(VBASE+VEXTNT)
 	clr	seizcnt
 	clr	escpcnt
 
-restart	jsr	intro
+restart	ldd	#$0080
+	pshs	d
+	jsr	intro
+	leas	2,s
 
 	lda	atmpcnt
 	adda	#$01
@@ -519,7 +522,7 @@ intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	sync
 
 	decb
-	bne	intstlp
+	bne	intstl2
 
 	ldb	#$04
 	ldx	#(PLAYPOS-1)
@@ -531,12 +534,22 @@ intstl1	lda	b,x
 
 	ldb	#$20
 
+intstl2	dec	3,s
+	bne	intstlp
+	lda	2,s
+	beq	intstox
+	deca
+	sta	2,s
 	bra	intstlp
+
+intstox	andcc	#$fe
+	rts
 
 intrext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	intrext
 
+	orcc	#$01
 	rts
 
 *
