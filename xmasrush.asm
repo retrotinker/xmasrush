@@ -703,6 +703,10 @@ talyscn	tst	PIA0D1		wait for vsync interrupt
 tlywait	tst	PIA0D1		wait for vsync interrupt
 	sync
 
+	ifdef MON09
+	jsr	chkuart
+	endif
+
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	tlyexit
