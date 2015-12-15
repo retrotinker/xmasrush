@@ -76,7 +76,7 @@ START	equ	(VBASE+VEXTNT)
 	clr	seizcnt
 	clr	escpcnt
 
-restart	ldd	#$0080
+restart	ldd	#$0400
 	pshs	d
 	jsr	intro
 	leas	2,s
@@ -85,7 +85,7 @@ restart	ldd	#$0080
 	tst	atmpcnt
 	beq	restart
 
-	ldd	#$0080
+	ldd	#$0400
 	pshs	d
 	jsr	talyscn
 	leas	2,s
@@ -444,7 +444,7 @@ winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	winexit
 
-	ldd	#$0080
+	ldd	#$0100
 	pshs	d
 	jsr	talyscn
 	leas	2,s
@@ -490,7 +490,7 @@ lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	lossext
 
-	ldd	#$0080
+	ldd	#$0100
 	pshs	d
 	jsr	talyscn
 	leas	2,s
