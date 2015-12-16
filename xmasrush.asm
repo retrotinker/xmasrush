@@ -107,21 +107,7 @@ restrt1	lda	atmpcnt		bump attempts counter
 
 	jsr	instscn		show istruction screen
 
-hwinit	clr	$ffc0		clr v0
-	clr	$ffc2		clr v1
-	clr	$ffc5		set v2
-	lda	#$c8		g3c, css=1
-	sta	PIA1D1		setup vdg
-
-	clr	$ffc7		set video base to $0e00
-	clr	$ffc9
-	clr	$ffcb
-	clr	$ffcc
-	clr	$ffce
-	clr	$ffd0
-	clr	$ffd2
-
-bgsetup	jsr	clrscrn		clear video buffers
+	jsr	clrscrn		clear video buffers
 
 	jsr	plfdraw		draw the playfield
 
@@ -157,6 +143,8 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	ersary0+2
 	std	ersary1+2
 
+	jsr	cg3init		setup initial CG3 video screen
+
 	lda	#$01		init video field indicator
 	sta	vfield
 
@@ -182,22 +170,7 @@ vblank	tst	PIA0D1		wait for vsync interrupt
 	ora	PIA1D1
 	sta	PIA1D1
 
-	lda	vfield		load previous field indicator
-
-	deca			switch video field indicator
-	bne	vblank1
-
-	clr	$ffc9		reset video base to $0e00
-	clr	$ffcc
-
-	bra	vblnkex
-
-vblank1	lda	#$01		reset video field indicator
-
-	clr	$ffc8		reset video base to $1a00
-	clr	$ffcd
-
-vblnkex	sta	vfield		save current field indicator
+	jsr	vbswtch
 
 verase	lsla			convert to pointer offset
 	ldy	#ersptrs	use as offset into erase pointer array
@@ -408,21 +381,10 @@ win	lda	seizcnt		bump seizure and escape counts
 	daa
 	sta	escpcnt
 
-	lda	vfield		load previous field indicator
+	jsr	vbswtch
 
-	deca			switch video field indicator
-	bne	win1
-
-	clr	$ffc9		reset video base to $0e00
-	clr	$ffcc
-
-	bra	winwait
-
-win1	clr	$ffc8		reset video base to $1a00
-	clr	$ffcd
-
-winwait	ldb	#$80
-win2	tst	PIA0D1		wait for vsync interrupt
+	ldb	#$80
+winwait	tst	PIA0D1		wait for vsync interrupt
 	sync
 
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
@@ -430,7 +392,7 @@ win2	tst	PIA0D1		wait for vsync interrupt
 	beq	winexit
 
 	decb
-	bne	win2
+	bne	winwait
 
 winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
@@ -447,28 +409,17 @@ winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 
 loss	lda	#GMFXMTR	bump seizure count, if appropriate
 	bita	gamflgs
-	bne	loss0
+	bne	loss1
 
 	lda	seizcnt
 	adda	#$01
 	daa
 	sta	seizcnt
 
-loss0	lda	vfield		load previous field indicator
+loss1	jsr	vbswtch
 
-	deca			switch video field indicator
-	bne	loss1
-
-	clr	$ffc9		reset video base to $0e00
-	clr	$ffcc
-
-	bra	losswai
-
-loss1	clr	$ffc8		reset video base to $1a00
-	clr	$ffcd
-
-losswai	ldb	#$80
-loss2	tst	PIA0D1		wait for vsync interrupt
+	ldb	#$80
+losswai	tst	PIA0D1		wait for vsync interrupt
 	sync
 
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
@@ -476,7 +427,7 @@ loss2	tst	PIA0D1		wait for vsync interrupt
 	beq	lossext
 
 	decb
-	bne	loss2
+	bne	losswai
 
 lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
@@ -1190,6 +1141,47 @@ inprddn	orb	#INPUTDN	joystick points down
 inprdup	orb	#INPUTUP	joystick points up
 
 inprdex	stb	inpflgs
+	rts
+
+*
+* cg3init -- setup initial CG3 video mode/screen
+*
+cg3init	clr	$ffc0		clr v0
+	clr	$ffc2		clr v1
+	clr	$ffc5		set v2
+	lda	#$c8		g3c, css=1
+	sta	PIA1D1		setup vdg
+
+	clr	$ffc7		set video base to $0e00
+	clr	$ffc9
+	clr	$ffcb
+	clr	$ffcc
+	clr	$ffce
+	clr	$ffd0
+	clr	$ffd2
+
+	rts
+
+*
+* vbswtch -- switch to opposite CG3 screen
+*
+vbswtch	lda	vfield		load previous field indicator
+
+	deca			switch video field indicator
+	bne	vbswtc1
+
+	clr	$ffc9		reset video base to $0e00
+	clr	$ffcc
+
+	bra	vbswtcx
+
+vbswtc1	lda	#$01		reset video field indicator
+
+	clr	$ffc8		reset video base to $1a00
+	clr	$ffcd
+
+vbswtcx	sta	vfield		save current field indicator
+
 	rts
 
 *
