@@ -399,16 +399,6 @@ vloop	equ	*
 
 	lbra	vblank
 
-	ifdef MON09
-* Check for user break (development only)
-chkuart	lda	$ff69		Check for serial port activity
-	bita	#$08
-	beq	chkurex
-	lda	$ff68
-	jmp	[$fffe]		Re-enter monitor
-chkurex	rts
-	endif
-
 win	lda	seizcnt		bump seizure and escape counts
 	adda	#$01
 	daa
@@ -500,289 +490,6 @@ lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	lbcs	restrt1
 
 	lbra	restart
-
-*
-* Exit the game
-*
-exit 	equ	*
-	ifdef MON09
-	jmp	[$fffe]		Reset!
-	else
-	lds	savestk		restore stack pointer
-	lda	savecc		reenable any interrupts
-	pshs	a
-	puls	cc
-	jsr	clrtscn		clear text screen
-	rts			return to RSDOS
-	endif
-
-*
-* Show intro screen
-*
-intro	tst	PIA0D1		wait for vsync interrupt
-	sync
-
-	ldx	#intscrn
-	ldy	#TXTBASE
-intsclp	lda	,x+
-	sta	,y+
-	cmpx	#(intscrn+512)
-	blt	intsclp
-
-	clr	$ffc0		clr v0
-	clr	$ffc2		clr v1
-	clr	$ffc4		clr v2
-	clr	PIA1D1		setup vdg
-
-	clr	$ffc6		set video base to $0400
-	clr	$ffc9
-	clr	$ffca
-	clr	$ffcc
-	clr	$ffce
-	clr	$ffd0
-	clr	$ffd2
-
-	ldb	#$20
-intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
-	bita	#$02		test for left joystick button press
-	beq	intrext
-
-	ifdef MON09
-	jsr	chkuart
-	endif
-
-	tst	PIA0D1
-	sync
-
-	decb
-	bne	intstl2
-
-	ldb	#$04
-	ldx	#(PLAYPOS-1)
-intstl1	lda	b,x
-	eora	#$40
-	sta	b,x
-	decb
-	bne	intstl1
-
-	ldb	#$20
-
-intstl2	dec	3,s
-	bne	intstl3
-	lda	2,s
-	beq	intstox
-	deca
-	sta	2,s
-
-intstl3	lda	#$fd
-	sta	PIA0D1
-	lda	PIA0D0
-	anda	#$40
-	bne	intstl4
-
-	clr	atmpcnt		clear results tallies
-	clr	seizcnt
-	clr	escpcnt
-
-	bra	intstox	
-
-intstl4	lda	#$fb
-	sta	PIA0D1
-	lda	PIA0D0
-	anda	#$40
-	bne	intstlp
-
-	jmp	exit
-
-intstox	andcc	#$fe
-	rts
-
-intrext	lda	PIA0D0		read from the PIA connected to the joystick buttons
-	bita	#$02		test for left joystick button press
-	beq	intrext
-
-	orcc	#$01
-	rts
-
-*
-* Clear text screen
-*
-clrtscn	lda	#' '
-	ldy	#TXTBASE
-clrtslp	sta	,y+
-	cmpy	#(TXTBASE+512)
-	blt	clrtslp
-
-	rts
-
-*
-* Draw string
-*
-drawstr	lda	,x+
-	beq	drawstx
-	sta	,y+
-	bra	drawstr
-
-drawstx	rts
-
-*
-* Show instructions
-*
-instscn	tst	PIA0D1		wait for vsync interrupt
-	sync
-
-	jsr	clrtscn
-
-	ldx	#instrs1
-	ldy	#IS1BASE
-	jsr	drawstr
-
-	ldx	#instrs2
-	ldy	#IS2BASE
-	jsr	drawstr
-
-	ldx	#instrs3
-	ldy	#IS3BASE
-	jsr	drawstr
-
-	ldx	#instrs4
-	ldy	#IS4BASE
-	jsr	drawstr
-
-inswait	ldb	#$80
-inswai2	tst	PIA0D1		wait for vsync interrupt
-	sync
-
-	lda	PIA0D0		read from the PIA connected to the joystick buttons
-	bita	#$02		test for left joystick button press
-	beq	insexit
-
-	decb
-	bne	inswai2
-
-insexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
-	bita	#$02		test for left joystick button press
-	beq	insexit
-
-	rts
-
-*
-* Show BCD encoded number on screen
-*
-bcdshow	pshs	a
-	anda	#$f0
-	lsra
-	lsra
-	lsra
-	lsra
-	adda	#$30
-	sta	,y+
-	puls	a
-	anda	#$0f
-	adda	#$30
-	sta	,y
-	rts
-
-*
-* Show tallies
-*
-talyscn	tst	PIA0D1		wait for vsync interrupt
-	sync
-
-	jsr	clrtscn
-
-	ldx	#atmpstr
-	ldy	#ATSTBAS
-	jsr	drawstr
-
-	leay	2,y
-	lda	atmpcnt
-	jsr	bcdshow
-
-	ldx	#seizstr
-	ldy	#SZSTBAS
-	jsr	drawstr
-
-	leay	2,y
-	lda	seizcnt
-	jsr	bcdshow
-
-	ldx	#escpstr
-	ldy	#ESSTBAS
-	jsr	drawstr
-
-	leay	3,y
-	lda	escpcnt
-	jsr	bcdshow
-
-	ldx	#clrstr
-	ldy	#CLSTBAS
-	jsr	drawstr
-
-	ldx	#brkstr
-	ldy	#BRSTBAS
-	jsr	drawstr
-
-	clr	$ffc0		clr v0
-	clr	$ffc2		clr v1
-	clr	$ffc4		clr v2
-	clr	PIA1D1		setup vdg
-
-	clr	$ffc6		set video base to $0400
-	clr	$ffc9
-	clr	$ffca
-	clr	$ffcc
-	clr	$ffce
-	clr	$ffd0
-	clr	$ffd2
-
-tlywait	tst	PIA0D1		wait for vsync interrupt
-	sync
-
-	ifdef MON09
-	jsr	chkuart
-	endif
-
-	lda	PIA0D0		read from the PIA connected to the joystick buttons
-	bita	#$02		test for left joystick button press
-	beq	tlyexit
-
-	dec	3,s
-	bne	tlywai2
-	lda	2,s
-	beq	tlytmox
-	deca
-	sta	2,s
-
-tlywai2	lda	#$fd
-	sta	PIA0D1
-	lda	PIA0D0
-	anda	#$40
-	bne	tlywai3
-
-	clr	atmpcnt		clear results tallies
-	clr	seizcnt
-	clr	escpcnt
-
-	lbra	talyscn
-
-tlywai3	lda	#$fb
-	sta	PIA0D1
-	lda	PIA0D0
-	anda	#$40
-	bne	tlywait
-
-	jmp	exit
-
-tlytmox	andcc	#$fe
-	rts
-
-tlyexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
-	bita	#$02		test for left joystick button press
-	beq	tlyexit
-
-	orcc	#$01
-	rts
 
 *
 * Move snowman 1
@@ -1195,32 +902,233 @@ snw4mvb	puls	d
 snw4mvx	rts
 
 *
-* spcolck -- check for collision w/ player
+* Show intro screen
 *
-*	2,S -- sprite position data
-*	X   -- pointer to object position data
-*
-*	A,X clobbered
-*
-spcolck	lda	,x+
+intro	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	ldx	#intscrn
+	ldy	#TXTBASE
+intsclp	lda	,x+
+	sta	,y+
+	cmpx	#(intscrn+512)
+	blt	intsclp
+
+	clr	$ffc0		clr v0
+	clr	$ffc2		clr v1
+	clr	$ffc4		clr v2
+	clr	PIA1D1		setup vdg
+
+	clr	$ffc6		set video base to $0400
+	clr	$ffc9
+	clr	$ffca
+	clr	$ffcc
+	clr	$ffce
+	clr	$ffd0
+	clr	$ffd2
+
+	ldb	#$20
+intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	intrext
+
+	ifdef MON09
+	jsr	chkuart
+	endif
+
+	tst	PIA0D1
+	sync
+
+	decb
+	bne	intstl2
+
+	ldb	#$04
+	ldx	#(PLAYPOS-1)
+intstl1	lda	b,x
+	eora	#$40
+	sta	b,x
+	decb
+	bne	intstl1
+
+	ldb	#$20
+
+intstl2	dec	3,s
+	bne	intstl3
+	lda	2,s
+	beq	intstox
 	deca
-	cmpa	2,s
-	bgt	spcolcx
-	adda	#$02
-	cmpa	2,s
-	blt	spcolcx
-	lda	,x
-	deca
-	cmpa	3,s
-	bgt	spcolcx
-	adda	#$02
-	cmpa	3,s
-	blt	spcolcx
+	sta	2,s
+
+intstl3	lda	#$fd
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	bne	intstl4
+
+	clr	atmpcnt		clear results tallies
+	clr	seizcnt
+	clr	escpcnt
+
+	bra	intstox	
+
+intstl4	lda	#$fb
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	bne	intstlp
+
+	jmp	exit
+
+intstox	andcc	#$fe
+	rts
+
+intrext	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	intrext
 
 	orcc	#$01
 	rts
 
-spcolcx	andcc	#$fe
+*
+* Show instructions
+*
+instscn	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	jsr	clrtscn
+
+	ldx	#instrs1
+	ldy	#IS1BASE
+	jsr	drawstr
+
+	ldx	#instrs2
+	ldy	#IS2BASE
+	jsr	drawstr
+
+	ldx	#instrs3
+	ldy	#IS3BASE
+	jsr	drawstr
+
+	ldx	#instrs4
+	ldy	#IS4BASE
+	jsr	drawstr
+
+inswait	ldb	#$80
+inswai2	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	insexit
+
+	decb
+	bne	inswai2
+
+insexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	insexit
+
+	rts
+
+*
+* Show tallies
+*
+talyscn	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	jsr	clrtscn
+
+	ldx	#atmpstr
+	ldy	#ATSTBAS
+	jsr	drawstr
+
+	leay	2,y
+	lda	atmpcnt
+	jsr	bcdshow
+
+	ldx	#seizstr
+	ldy	#SZSTBAS
+	jsr	drawstr
+
+	leay	2,y
+	lda	seizcnt
+	jsr	bcdshow
+
+	ldx	#escpstr
+	ldy	#ESSTBAS
+	jsr	drawstr
+
+	leay	3,y
+	lda	escpcnt
+	jsr	bcdshow
+
+	ldx	#clrstr
+	ldy	#CLSTBAS
+	jsr	drawstr
+
+	ldx	#brkstr
+	ldy	#BRSTBAS
+	jsr	drawstr
+
+	clr	$ffc0		clr v0
+	clr	$ffc2		clr v1
+	clr	$ffc4		clr v2
+	clr	PIA1D1		setup vdg
+
+	clr	$ffc6		set video base to $0400
+	clr	$ffc9
+	clr	$ffca
+	clr	$ffcc
+	clr	$ffce
+	clr	$ffd0
+	clr	$ffd2
+
+tlywait	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	ifdef MON09
+	jsr	chkuart
+	endif
+
+	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	tlyexit
+
+	dec	3,s
+	bne	tlywai2
+	lda	2,s
+	beq	tlytmox
+	deca
+	sta	2,s
+
+tlywai2	lda	#$fd
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	bne	tlywai3
+
+	clr	atmpcnt		clear results tallies
+	clr	seizcnt
+	clr	escpcnt
+
+	lbra	talyscn
+
+tlywai3	lda	#$fb
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	bne	tlywait
+
+	jmp	exit
+
+tlytmox	andcc	#$fe
+	rts
+
+tlyexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	tlyexit
+
+	orcc	#$01
 	rts
 
 *
@@ -1298,137 +1206,70 @@ clsloop	std	,x++
 	rts
 
 *
-* bgcmini -- init background collision map
+* Clear text screen
 *
-*	D,X,Y clobbered
+clrtscn	lda	#' '
+	ldy	#TXTBASE
+clrtslp	sta	,y+
+	cmpy	#(TXTBASE+512)
+	blt	clrtslp
+
+	rts
+
 *
-bgcmini	ldx	#plyfmap
-	lda	#plyfmsz	init map size counter
-	pshs	a
-
-	ldy	#bgclmap
-bginilp	clr	,y+
-	deca
-	bne	bginilp
-	ldy	#bgclmap
-
-bgcloop	pshs	a
-	clrb
-
-	lda	,x+
-	pshs	a
-	lsra
-	rorb
-	ora	,s+
-
-	ora	,s+
-	sta	4,y
-
-	ora	,y
+* Draw string
+*
+drawstr	lda	,x+
+	beq	drawstx
 	sta	,y+
-	tfr	b,a
+	bra	drawstr
 
-	dec	,s
-	bne	bgcloop
+drawstx	rts
 
-	leas	1,s
+*
+* Show BCD encoded number on screen
+*
+bcdshow	pshs	a
+	anda	#$f0
+	lsra
+	lsra
+	lsra
+	lsra
+	adda	#$30
+	sta	,y+
+	puls	a
+	anda	#$0f
+	adda	#$30
+	sta	,y
 	rts
 
 *
-* bgcolck -- check for collision with background
+* spcolck -- check for collision w/ player
 *
-*	D -- x- and y-coordinate (in A and B)
+*	2,S -- sprite position data
+*	X   -- pointer to object position data
 *
-*	D,X clobbered
+*	A,X clobbered
 *
-bgcolck	pshs	a		save x-offset
+spcolck	lda	,x+
+	deca
+	cmpa	2,s
+	bgt	spcolcx
+	adda	#$02
+	cmpa	2,s
+	blt	spcolcx
+	lda	,x
+	deca
+	cmpa	3,s
+	bgt	spcolcx
+	adda	#$02
+	cmpa	3,s
+	blt	spcolcx
 
-	lslb			transform x- and y-offset to pointer
-	lslb
-	ldx	#bgclmap
-	leax	b,x
-	lsra
-	lsra
-	lsra
-	leax	a,x
-
-	puls	a		use x-offset to build bitmask
-	anda	#$07
-	inca
-	ldb	#$c0		two bits wide for tile/sprite size
-
-bgclck1	deca
-	beq	bgclck2
-	lsrb
-	bra	bgclck1
-
-bgclck2	bitb	,x		check bitmask against collision map
-	bne	bgclckx			at each relevant position
-	bitb	4,x
-	bne	bgclckx
-	cmpb	#$01
-	bne	bgclck3
-	ldb	#$80
-	bitb	1,x
-	bne	bgclckx
-	bitb	5,x
-	bne	bgclckx
-
-bgclck3	andcc	#$fe		clear carry on no collision
+	orcc	#$01
 	rts
 
-bgclckx	orcc	#$01		set carry on collision
-	rts
-
-*
-* cvtpos -- convert grid position to screen offset
-*
-*	D -- x- and y-coordinate (in A and B)
-*
-cvtpos	pshs	a,b
-	exg	a,b
-	clrb
-	lsra
-	rorb
-	adda	1,s
-	lsra
-	rorb
-	lsra
-	rorb
-	orb	,s
-	leas	2,s
-	rts
-
-*
-* tiledrw -- draw background tile on both video fields
-*
-*	D -- x- and y-coordinate (in A and B)
-*	U -- pointer to tile data
-*
-*	D,X,Y,U clobbered
-*
-tiledrw	jsr	cvtpos
-	tfr	d,x
-	leax	VBASE+64,x
-	leay	VSIZE,x
-	pulu	d
-	std	-64,x
-	std	-64,y
-	pulu	d
-	std	-32,x
-	std	-32,y
-	pulu	d
-	std	,x
-	std	,y
-	pulu	d
-	std	32,x
-	std	32,y
-	pulu	d
-	std	64,x
-	std	64,y
-	pulu	d
-	std	96,x
-	std	96,y
+spcolcx	andcc	#$fe
 	rts
 
 *
@@ -1490,6 +1331,89 @@ sprtdr2	pulu	d
 	rts
 
 *
+* bgcolck -- check for collision with background
+*
+*	D -- x- and y-coordinate (in A and B)
+*
+*	D,X clobbered
+*
+bgcolck	pshs	a		save x-offset
+
+	lslb			transform x- and y-offset to pointer
+	lslb
+	ldx	#bgclmap
+	leax	b,x
+	lsra
+	lsra
+	lsra
+	leax	a,x
+
+	puls	a		use x-offset to build bitmask
+	anda	#$07
+	inca
+	ldb	#$c0		two bits wide for tile/sprite size
+
+bgclck1	deca
+	beq	bgclck2
+	lsrb
+	bra	bgclck1
+
+bgclck2	bitb	,x		check bitmask against collision map
+	bne	bgclckx			at each relevant position
+	bitb	4,x
+	bne	bgclckx
+	cmpb	#$01
+	bne	bgclck3
+	ldb	#$80
+	bitb	1,x
+	bne	bgclckx
+	bitb	5,x
+	bne	bgclckx
+
+bgclck3	andcc	#$fe		clear carry on no collision
+	rts
+
+bgclckx	orcc	#$01		set carry on collision
+	rts
+
+*
+* bgcmini -- init background collision map
+*
+*	D,X,Y clobbered
+*
+bgcmini	ldx	#plyfmap
+	lda	#plyfmsz	init map size counter
+	pshs	a
+
+	ldy	#bgclmap
+bginilp	clr	,y+
+	deca
+	bne	bginilp
+	ldy	#bgclmap
+
+bgcloop	pshs	a
+	clrb
+
+	lda	,x+
+	pshs	a
+	lsra
+	rorb
+	ora	,s+
+
+	ora	,s+
+	sta	4,y
+
+	ora	,y
+	sta	,y+
+	tfr	b,a
+
+	dec	,s
+	bne	bgcloop
+
+	leas	1,s
+	rts
+
+*
 * plfdraw -- draw playfield based on plyfmap data
 *
 *	D,X,Y,U clobbered
@@ -1536,6 +1460,57 @@ plflxck	dec	,s		check for end of map data
 	rts
 
 *
+* tiledrw -- draw background tile on both video fields
+*
+*	D -- x- and y-coordinate (in A and B)
+*	U -- pointer to tile data
+*
+*	D,X,Y,U clobbered
+*
+tiledrw	jsr	cvtpos
+	tfr	d,x
+	leax	VBASE+64,x
+	leay	VSIZE,x
+	pulu	d
+	std	-64,x
+	std	-64,y
+	pulu	d
+	std	-32,x
+	std	-32,y
+	pulu	d
+	std	,x
+	std	,y
+	pulu	d
+	std	32,x
+	std	32,y
+	pulu	d
+	std	64,x
+	std	64,y
+	pulu	d
+	std	96,x
+	std	96,y
+	rts
+
+*
+* cvtpos -- convert grid position to screen offset
+*
+*	D -- x- and y-coordinate (in A and B)
+*
+cvtpos	pshs	a,b
+	exg	a,b
+	clrb
+	lsra
+	rorb
+	adda	1,s
+	lsra
+	rorb
+	lsra
+	rorb
+	orb	,s
+	leas	2,s
+	rts
+
+*
 * Advance the LFSR value and return pseudo-random value
 *
 *	A returns pseudo-random value
@@ -1564,6 +1539,33 @@ lfsrget	lda	TIMVAL+1	Get MSB of LFSR data
 	rola			Shift result into 8-bit LFSR
 	sta	TIMVAL+1	Store the result
 	rts
+
+	ifdef MON09
+*
+* Check for user break (development only)
+*
+chkuart	lda	$ff69		Check for serial port activity
+	bita	#$08
+	beq	chkurex
+	lda	$ff68
+	jmp	[$fffe]		Re-enter monitor
+chkurex	rts
+	endif
+
+*
+* Exit the game
+*
+exit 	equ	*
+	ifdef MON09
+	jmp	[$fffe]		Reset!
+	else
+	lds	savestk		restore stack pointer
+	lda	savecc		reenable any interrupts
+	pshs	a
+	puls	cc
+	jsr	clrtscn		clear text screen
+	rts			return to RSDOS
+	endif
 
 *
 * Data Declarations
