@@ -116,9 +116,6 @@ hwinit	clr	$ffc0		clr v0
 	clr	$ffd0
 	clr	$ffd2
 
-	lda	#$01		init video field indicator
-	sta	vfield
-
 bgsetup	jsr	clrscrn		clear video buffers
 
 	jsr	plfdraw		draw the playfield
@@ -129,9 +126,6 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	playpos
 	std	ersary0
 	std	ersary1
-
-	lda	#$01		preset movement delay counter
-	sta	mvdlcnt
 
 	ldd	#$1511		point to grid offset for xmas tree
 	std	xmstpos
@@ -157,6 +151,12 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	snw4pos
 	std	ersary0+2
 	std	ersary1+2
+
+	lda	#$01		init video field indicator
+	sta	vfield
+
+	lda	#$01		preset movement delay counter
+	sta	mvdlcnt
 
 	lda	#SNMDRST	reset snowman movement delay counters
 	sta	sn1mcnt
