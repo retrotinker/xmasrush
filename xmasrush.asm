@@ -1304,16 +1304,28 @@ sprtdrw	jsr	cvtpos
 sprtdr1	leax	VBASE+VSIZE+64,x
 
 sprtdr2	pulu	d
+	eora	-64,x
+	eorb	-63,x
 	std	-64,x
 	pulu	d
+	eora	-32,x
+	eorb	-31,x
 	std	-32,x
 	pulu	d
+	eora	,x
+	eorb	1,x
 	std	,x
 	pulu	d
+	eora	32,x
+	eorb	33,x
 	std	32,x
 	pulu	d
+	eora	64,x
+	eorb	65,x
 	std	64,x
 	pulu	d
+	eora	96,x
+	eorb	97,x
 	std	96,x
 	pulu	d
 	rts
