@@ -57,6 +57,8 @@ START	equ	(VBASE+VEXTNT)
 	puls	a
 	sta	savecc
 
+	orcc	#$50		disable IRQ and FIRQ
+
 	lda	PIA1C0
 	anda	#$fb
 	sta	PIA1C0
@@ -100,9 +102,7 @@ restrt1	lda	atmpcnt		bump attempts counter
 
 	jsr	instscn		show istruction screen
 
-hwinit	orcc	#$50		disable IRQ and FIRQ
-
-	clr	$ffc0		clr v0
+hwinit	clr	$ffc0		clr v0
 	clr	$ffc2		clr v1
 	clr	$ffc5		set v2
 	lda	#$c8		g3c, css=1
