@@ -82,9 +82,6 @@ restart	ldd	#$0400
 	leas	2,s
 	bcs	restrt1
 
-	tst	atmpcnt
-	beq	restart
-
 	ldd	#$0400
 	pshs	d
 	jsr	talyscn
