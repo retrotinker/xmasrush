@@ -1185,21 +1185,15 @@ cg3init	clr	$ffc0		clr v0
 * vbswtch -- switch to opposite CG3 screen
 *
 vbswtch	lda	vfield		load previous field indicator
-
 	deca			switch video field indicator
-	bne	vbswtc1
-
+	bne	.1?
 	clr	$ffc9		reset video base to $0e00
 	clr	$ffcc
-
-	bra	vbswtcx
-
-vbswtc1	lda	#$01		reset video field indicator
-
+	bra	.2?
+.1?	lda	#$01		reset video field indicator
 	clr	$ffc8		reset video base to $1a00
 	clr	$ffcd
-
-vbswtcx	sta	vfield		save current field indicator
+.2?	sta	vfield		save current field indicator
 
 	rts
 
@@ -1211,9 +1205,9 @@ vbswtcx	sta	vfield		save current field indicator
 clrscrn	ldx	#VBASE
 	clra
 	clrb
-clsloop	std	,x++
+.1?	std	,x++
 	cmpx	#(VBASE+VEXTNT)
-	blt	clsloop
+	blt	.1?
 	rts
 
 *
@@ -1221,21 +1215,19 @@ clsloop	std	,x++
 *
 clrtscn	lda	#' '
 	ldy	#TXTBASE
-clrtslp	sta	,y+
+.1?	sta	,y+
 	cmpy	#(TXTBASE+512)
-	blt	clrtslp
-
+	blt	.1?
 	rts
 
 *
 * Draw string
 *
 drawstr	lda	,x+
-	beq	drawstx
+	beq	.1?
 	sta	,y+
 	bra	drawstr
-
-drawstx	rts
+.1?	rts
 
 *
 * Show BCD encoded number on screen
