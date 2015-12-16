@@ -13,7 +13,7 @@ PIA1C0	equ	$ff21
 PIA1D1	equ	$ff22
 PIA1C1	equ	$ff23
 
-INPUTRT	equ	$01
+INPUTRT	equ	$01		input bit flag definitions
 INPUTLT	equ	$02
 INPUTUP	equ	$04
 INPUTDN	equ	$08
@@ -21,7 +21,7 @@ INPUTBT	equ	$10
 
 INMVMSK	equ	$0f		mask of movement bits
 
-GMFXMTR	equ	$01
+GMFXMTR	equ	$01		game status bit flag definitions
 GMFSNW1	equ	$02
 GMFSNW2	equ	$04
 GMFSNW3	equ	$08
@@ -30,12 +30,12 @@ GMFSNW4	equ	$10
 MVDLRST	equ	$08		reset value for movement delay counter
 SNMDRST	equ	$10		reset value for snowman move delay counter
 
-TXTBASE	equ	$0400
+TXTBASE	equ	$0400		memory map-related definitions
 VBASE	equ	$0e00
 VSIZE	equ	$0c00
 VEXTNT	equ	(2*VSIZE)
 
-IS1BASE	equ	(TXTBASE+5*32+3)
+IS1BASE	equ	(TXTBASE+5*32+3)	string display location info
 IS2BASE	equ	(TXTBASE+6*32+3)
 IS3BASE	equ	(TXTBASE+7*32+3)
 IS4BASE	equ	(TXTBASE+10*32+10)
@@ -52,7 +52,7 @@ START	equ	(VBASE+VEXTNT)
 
 	org	START
 
-	sts	savestk
+	sts	savestk		save status for return to Color BASIC
 	pshs	cc
 	puls	a
 	sta	savecc
@@ -81,24 +81,24 @@ START	equ	(VBASE+VEXTNT)
 	clr	seizcnt
 	clr	escpcnt
 
-restart	ldd	#$0400
+restart	ldd	#$0400		show intro screen
 	pshs	d
 	jsr	intro
 	leas	2,s
 	bcs	restrt1
 
-	ldd	#$0400
+	ldd	#$0400		show tally screen
 	pshs	d
 	jsr	talyscn
 	leas	2,s
-	bcc	restart
+	bcc	restart		cycle in attract mode
 
-restrt1	lda	atmpcnt
+restrt1	lda	atmpcnt		bump attempts counter
 	adda	#$01
 	daa
 	sta	atmpcnt
 
-	jsr	instscn
+	jsr	instscn		show istruction screen
 
 hwinit	orcc	#$50		disable IRQ and FIRQ
 
@@ -125,7 +125,7 @@ bgsetup	jsr	clrscrn		clear video buffers
 
 	jsr	bgcmini		init background collision map
 
-	ldd	#$0f1e
+	ldd	#$0f1e		point to grid offset for player
 	std	playpos
 	std	ersary0
 	std	ersary1
@@ -158,13 +158,13 @@ bgsetup	jsr	clrscrn		clear video buffers
 	std	ersary0+2
 	std	ersary1+2
 
-	lda	#SNMDRST
+	lda	#SNMDRST	reset snowman movement delay counters
 	sta	sn1mcnt
 	sta	sn2mcnt
 	sta	sn3mcnt
 	sta	sn4mcnt
 
-	ldd	playpos
+	ldd	playpos		set initial target for snowman 1
 	std	snw1tgt
 
 	ldb	TIMVAL+1	Seed the LFSR data
@@ -173,7 +173,7 @@ bgsetup	jsr	clrscrn		clear video buffers
 lfsrini	stb	TIMVAL+1
 
 	lda	#(GMFXMTR+GMFSNW1+GMFSNW2+GMFSNW3+GMFSNW4)
-	sta	gamflgs
+	sta	gamflgs		initialize game status flags
 
 vblank	tst	PIA0D1		wait for vsync interrupt
 	sync
@@ -221,7 +221,7 @@ verase	lsla			convert to pointer offset
 	ldd	10,y		retreive erase grid offset
 	jsr	sprtera		erase sprite
 
-vdraw	lda	#GMFXMTR
+vdraw	lda	#GMFXMTR	check if xmas tree already taken
 	bita	gamflgs
 	beq	vdraw1
 
@@ -230,7 +230,7 @@ vdraw	lda	#GMFXMTR
 	ldu	#xmstree	point to data for xmas tree
 	jsr	sprtdrw
 
-vdraw1	lda	#GMFSNW1
+vdraw1	lda	#GMFSNW1	check if snowman 1 is active
 	bita	gamflgs
 	beq	vdraw2
 
@@ -239,7 +239,7 @@ vdraw1	lda	#GMFSNW1
 	ldu	#snowman	point to data for snowman
 	jsr	sprtdrw
 
-vdraw2	lda	#GMFSNW2
+vdraw2	lda	#GMFSNW2	check if snowman 2 is active
 	bita	gamflgs
 	beq	vdraw3
 
@@ -248,7 +248,7 @@ vdraw2	lda	#GMFSNW2
 	ldu	#snowman	point to data for snowman
 	jsr	sprtdrw
 
-vdraw3	lda	#GMFSNW3
+vdraw3	lda	#GMFSNW3	check if snowman 3 is active
 	bita	gamflgs
 	beq	vdraw4
 
@@ -257,7 +257,7 @@ vdraw3	lda	#GMFSNW3
 	ldu	#snowman	point to data for snowman
 	jsr	sprtdrw
 
-vdraw4	lda	#GMFSNW4
+vdraw4	lda	#GMFSNW4	check if snowman 4 is active
 	bita	gamflgs
 	beq	vdraw5
 
@@ -271,7 +271,7 @@ vdraw5	ldd	playpos		get player grid offset
 	ldu	#player		retrieve player graphic pointer
 	jsr	sprtdrw		draw snowman sprite
 
-vcalc	lda	#GMFXMTR
+vcalc	lda	#GMFXMTR	check for player escape
 	bita	gamflgs
 	bne	vcalc0
 	lda	playpos+1
@@ -345,44 +345,44 @@ vcalc5	ldd	,s		check for pending collision
 vcalc6	puls	d		allow movement
 	std	playpos
 
-vcalc7	jsr	snw1mov
+vcalc7	jsr	snw1mov		calculate snowman movement targets
 	jsr	snw2mov
 	jsr	snw3mov
 	jsr	snw4mov
 
-vcalc8	ldd	playpos
+vcalc8	ldd	playpos		check for player collision w/ xmas tree
 	pshs	d
 	ldx	#xmstpos
 	jsr	spcolck
 	bcc	vcalc9
 
-	lda	#GMFXMTR
+	lda	#GMFXMTR	if so, turn-off game flag for xmas tree
 	coma
 	anda	gamflgs
 	sta	gamflgs
 
-vcalc9	ldx	#snw1pos
+vcalc9	ldx	#snw1pos	check for player collision w/ snowman 1
 	jsr	spcolck
 	bcc	vcalc10
 
 	leas	2,s
 	lbra	loss
 
-vcalc10	ldx	#snw2pos
+vcalc10	ldx	#snw2pos	check for player ocllision w/ snowman 2
 	jsr	spcolck
 	bcc	vcalc11
 
 	leas	2,s
 	lbra	loss
 
-vcalc11	ldx	#snw3pos
+vcalc11	ldx	#snw3pos	check for player ocllision w/ snowman 3
 	jsr	spcolck
 	bcc	vcalc12
 
 	leas	2,s
 	lbra	loss
 
-vcalc12	ldx	#snw4pos
+vcalc12	ldx	#snw4pos	check for player ocllision w/ snowman 4
 	jsr	spcolck
 	bcc	vcalc13
 
@@ -391,7 +391,7 @@ vcalc12	ldx	#snw4pos
 
 vcalc13	leas	2,s
 
-vloop	equ	*
+vloop	equ	*		cycle the game loop
 
 	ifdef MON09
 	jsr	chkuart
