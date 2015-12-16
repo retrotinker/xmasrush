@@ -79,6 +79,11 @@ START	equ	(VBASE+VEXTNT)
 	tst	PIA0D1
 	sync			wait for vsync interrupt
 
+	ldb	TIMVAL+1	Seed the LFSR data
+	bne	lfsrini		Can't tolerate a zero-value LFSR seed...
+	ldb	#$01
+lfsrini	stb	TIMVAL+1
+
 	clr	atmpcnt		clear results tallies
 	clr	seizcnt
 	clr	escpcnt
@@ -166,11 +171,6 @@ bgsetup	jsr	clrscrn		clear video buffers
 
 	ldd	playpos		set initial target for snowman 1
 	std	snw1tgt
-
-	ldb	TIMVAL+1	Seed the LFSR data
-	bne	lfsrini		Can't tolerate a zero-value LFSR seed...
-	ldb	#$01
-lfsrini	stb	TIMVAL+1
 
 	lda	#(GMFXMTR+GMFSNW1+GMFSNW2+GMFSNW3+GMFSNW4)
 	sta	gamflgs		initialize game status flags
