@@ -244,6 +244,30 @@ vdraw5	ldd	playpos		get player grid offset
 	ldu	#player		retrieve player graphic pointer
 	jsr	sprtdrw		draw snowman sprite
 
+vcheck	ldd	playpos
+	pshs	d
+	ldx	#snw1pos	check for player collision w/ snowman 1
+	jsr	spcolck
+	bcc	.1?
+	leas	2,s
+	lbra	loss
+.1?	ldx	#snw2pos	check for player ocllision w/ snowman 2
+	jsr	spcolck
+	bcc	.2?
+	leas	2,s
+	lbra	loss
+.2?	ldx	#snw3pos	check for player ocllision w/ snowman 3
+	jsr	spcolck
+	bcc	.3?
+	leas	2,s
+	lbra	loss
+.3?	ldx	#snw4pos	check for player ocllision w/ snowman 4
+	jsr	spcolck
+	bcc	.4?
+	leas	2,s
+	lbra	loss
+.4?	leas	2,s
+
 vcalc	lda	#GMFXMTR	check for player escape
 	bita	gamflgs
 	bne	vcalc0
@@ -327,40 +351,12 @@ vcalc8	ldd	playpos		check for player collision w/ xmas tree
 	pshs	d
 	ldx	#xmstpos
 	jsr	spcolck
-	bcc	vcalc9
+	bcc	vcalc13
 
 	lda	#GMFXMTR	if so, turn-off game flag for xmas tree
 	coma
 	anda	gamflgs
 	sta	gamflgs
-
-vcalc9	ldx	#snw1pos	check for player collision w/ snowman 1
-	jsr	spcolck
-	bcc	vcalc10
-
-	leas	2,s
-	lbra	loss
-
-vcalc10	ldx	#snw2pos	check for player ocllision w/ snowman 2
-	jsr	spcolck
-	bcc	vcalc11
-
-	leas	2,s
-	lbra	loss
-
-vcalc11	ldx	#snw3pos	check for player ocllision w/ snowman 3
-	jsr	spcolck
-	bcc	vcalc12
-
-	leas	2,s
-	lbra	loss
-
-vcalc12	ldx	#snw4pos	check for player ocllision w/ snowman 4
-	jsr	spcolck
-	bcc	vcalc13
-
-	leas	2,s
-	lbra	loss
 
 vcalc13	leas	2,s
 
