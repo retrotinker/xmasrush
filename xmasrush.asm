@@ -52,6 +52,11 @@ START	equ	(VBASE+VEXTNT)
 
 	org	START
 
+	sts	savestk
+	pshs	cc
+	puls	a
+	sta	savecc
+
 	lda	PIA1C0
 	anda	#$fb
 	sta	PIA1C0
@@ -497,6 +502,21 @@ lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	lbra	restart
 
 *
+* Exit the game
+*
+exit 	equ	*
+	ifdef MON09
+	jmp	[$fffe]		Reset!
+	else
+	lds	savestk		restore stack pointer
+	lda	savecc		reenable any interrupts
+	pshs	a
+	puls	cc
+	jsr	clrtscn		clear text screen
+	rts			return to RSDOS
+	endif
+
+*
 * Show intro screen
 *
 intro	tst	PIA0D1		wait for vsync interrupt
@@ -572,7 +592,7 @@ intstl4	lda	#$fb
 	anda	#$40
 	bne	intstlp
 
-	jmp	[$fffe]		Reset!
+	jmp	exit
 
 intstox	andcc	#$fe
 	rts
@@ -752,7 +772,7 @@ tlywai3	lda	#$fb
 	anda	#$40
 	bne	tlywait
 
-	jmp	[$fffe]		Reset!
+	jmp	exit
 
 tlytmox	andcc	#$fe
 	rts
@@ -1673,6 +1693,9 @@ brkstr	fcb	$42,$52,$45,$41,$4b,$20,$14,$0f,$20,$05,$0e,$04,$20,$07,$01,$0d
 *
 * Variable Declarations
 *
+savestk	rmb	2
+savecc	rmb	1
+
 vfield	rmb	1
 
 inpflgs	rmb	1
