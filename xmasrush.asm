@@ -160,8 +160,19 @@ restrt1	lda	atmpcnt		bump attempts counter
 	ldd	playpos		set initial target for snowman 1
 	std	snw1tgt
 
-	lda	#(GMFXMTR+GMFSNW1+GMFSNW2+GMFSNW3+GMFSNW4)
-	sta	gamflgs		initialize game status flags
+	lda	#GMFXMTR
+	ora	#GMFSNW4
+	ldb	escpcnt
+	cmpb	#$01
+	blt	.1?
+	ora	#GMFSNW1
+.1?	cmpb	#$02
+	blt	.2?
+	ora	#GMFSNW3
+.2?	cmpb	#$03
+	blt	.3?
+	ora	#GMFSNW2
+.3?	sta	gamflgs		initialize game status flags
 
 vblank	tst	PIA0D1		wait for vsync interrupt
 	sync
@@ -246,22 +257,34 @@ vdraw5	ldd	playpos		get player grid offset
 
 vcheck	ldd	playpos
 	pshs	d
+	lda	#GMFSNW1
+	bita	gamflgs
+	beq	.1?
 	ldx	#snw1pos	check for player collision w/ snowman 1
 	jsr	spcolck
 	bcc	.1?
 	leas	2,s
 	lbra	loss
-.1?	ldx	#snw2pos	check for player ocllision w/ snowman 2
+.1?	lda	#GMFSNW2
+	bita	gamflgs
+	beq	.2?
+	ldx	#snw2pos	check for player ocllision w/ snowman 2
 	jsr	spcolck
 	bcc	.2?
 	leas	2,s
 	lbra	loss
-.2?	ldx	#snw3pos	check for player ocllision w/ snowman 3
+.2?	lda	#GMFSNW3
+	bita	gamflgs
+	beq	.3?
+	ldx	#snw3pos	check for player ocllision w/ snowman 3
 	jsr	spcolck
 	bcc	.3?
 	leas	2,s
 	lbra	loss
-.3?	ldx	#snw4pos	check for player ocllision w/ snowman 4
+.3?	lda	#GMFSNW4
+	bita	gamflgs
+	beq	.4?
+	ldx	#snw4pos	check for player ocllision w/ snowman 4
 	jsr	spcolck
 	bcc	.4?
 	leas	2,s
