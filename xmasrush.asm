@@ -319,9 +319,6 @@ vcalc	lda	#GMFXMTR	check for player escape
 
 vcalc0	jsr	inpread		read player input for next frame
 
-	ldd	#player		use default player graphic
-	std	,s
-
 	ldd	playpos		copy player position for movement check
 	pshs	d
 
