@@ -932,6 +932,10 @@ intstl2	dec	3,s
 intstl3	lda	#$fd
 	sta	PIA0D1
 	lda	PIA0D0
+	pshs	a
+	lda	#$ff
+	sta	PIA0D1
+	puls	a
 	anda	#$40
 	bne	intstl4
 
@@ -944,6 +948,10 @@ intstl3	lda	#$fd
 intstl4	lda	#$fb
 	sta	PIA0D1
 	lda	PIA0D0
+	pshs	a
+	lda	#$ff
+	sta	PIA0D1
+	puls	a
 	anda	#$40
 	bne	intstlp
 
@@ -1074,6 +1082,10 @@ tlywait	tst	PIA0D1		wait for vsync interrupt
 tlywai2	lda	#$fd
 	sta	PIA0D1
 	lda	PIA0D0
+	pshs	a
+	lda	#$ff
+	sta	PIA0D1
+	puls	a
 	anda	#$40
 	bne	tlywai3
 
@@ -1086,6 +1098,10 @@ tlywai2	lda	#$fd
 tlywai3	lda	#$fb
 	sta	PIA0D1
 	lda	PIA0D0
+	pshs	a
+	lda	#$ff
+	sta	PIA0D1
+	puls	a
 	anda	#$40
 	bne	tlywait
 
