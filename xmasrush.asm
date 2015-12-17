@@ -57,6 +57,8 @@ START	equ	(VBASE+VEXTNT)
 	puls	a
 	sta	savecc
 
+	jsr	savpias		save PIA configuration
+
 	orcc	#$50		disable IRQ and FIRQ
 
 	lda	PIA1C0
@@ -1571,6 +1573,64 @@ lfsrget	lda	TIMVAL+1	Get MSB of LFSR data
 	sta	TIMVAL+1	Store the result
 	rts
 
+*
+* Save PIA configuration data
+*
+savpias	ldx	#PIA0D0
+	ldy	#savpdat
+	ldd	#$0202
+	pshs	d
+.1?	ldd	,x
+	std	,y++
+	andb	#$fb
+	stb	1,x
+	lda	,x
+	sta	,y+
+	orb	#$04
+	stb	1,x
+	dec	,s
+	beq	.2?
+	leax	2,x
+	bra	.1?
+.2?	lda	#$02
+	sta	,s
+	dec	1,s
+	beq	.3?
+	leax	($20-$2),x
+	bra	.1?
+.3?	leas	2,s
+	rts
+
+*
+* Restore PIA configuration data
+*
+rstpias	ldx	#PIA0D0
+	ldy	#savpdat
+	ldd	#$0202
+	pshs	d
+.1?	ldb	1,x
+	andb	#$fb
+	stb	1,x
+	lda	2,y
+	sta	,x
+	orb	#$04
+	stb	1,x
+	ldd	,y
+	std	,x
+	leay	3,y
+	dec	,s
+	beq	.2?
+	leax	2,x
+	bra	.1?
+.2?	lda	#$02
+	sta	,s
+	dec	1,s
+	beq	.3?
+	leax	($20-$2),x
+	bra	.1?
+.3?	leas	2,s
+	rts
+
 	ifdef MON09
 *
 * Check for user break (development only)
@@ -1590,10 +1650,11 @@ exit 	equ	*
 	ifdef MON09
 	jmp	[$fffe]		Reset!
 	else
-	lds	savestk		restore stack pointer
+	jsr	rstpias		restore PIA configuration
 	lda	savecc		reenable any interrupts
 	pshs	a
 	puls	cc
+	lds	savestk		restore stack pointer
 	jsr	clrtscn		clear text screen
 	rts			return to RSDOS
 	endif
@@ -1728,6 +1789,7 @@ brkstr	fcb	$42,$52,$45,$41,$4b,$20,$14,$0f,$20,$05,$0e,$04,$20,$07,$01,$0d
 *
 savestk	rmb	2
 savecc	rmb	1
+savpdat	rmb	12
 
 vfield	rmb	1
 
