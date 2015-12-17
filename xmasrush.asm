@@ -29,6 +29,7 @@ GMFSNW1	equ	$02
 GMFSNW2	equ	$04
 GMFSNW3	equ	$08
 GMFSNW4	equ	$10
+GMFJYST	equ	$20
 
 MVDLRST	equ	$08		reset value for movement delay counter
 SNMDRST	equ	$10		reset value for snowman move delay counter
@@ -173,7 +174,9 @@ restrt1	lda	atmpcnt		bump attempts counter
 	ldd	playpos		set initial target for snowman 1
 	std	snw1tgt
 
-	lda	#GMFXMTR
+	lda	gamflgs
+	anda	#GMFJYST
+	ora	#GMFXMTR
 	ora	#GMFSNW4
 	ldb	escpcnt
 	cmpb	#$01
@@ -427,6 +430,11 @@ winwait	tst	PIA0D1		wait for vsync interrupt
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	winexit
+	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	winext1
 
 	decb
 	bne	winwait
@@ -434,6 +442,16 @@ winwait	tst	PIA0D1		wait for vsync interrupt
 winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	winexit
+	lda	gamflgs
+	ora	#GMFJYST
+	sta	gamflgs
+winext1	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	winext1
+	lda	#$ff
+	sta	PIA0D1
 
 	ldd	#$0100
 	pshs	d
@@ -462,6 +480,11 @@ losswai	tst	PIA0D1		wait for vsync interrupt
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	lossext
+	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	losext1
 
 	decb
 	bne	losswai
@@ -469,6 +492,16 @@ losswai	tst	PIA0D1		wait for vsync interrupt
 lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	lossext
+	lda	gamflgs
+	ora	#GMFJYST
+	sta	gamflgs
+losext1	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	losext1
+	lda	#$ff
+	sta	PIA0D1
 
 	ldd	#$0100
 	pshs	d
@@ -895,6 +928,8 @@ snw4mvx	rts
 intro	tst	PIA0D1		wait for vsync interrupt
 	sync
 
+	clr	gamflgs
+
 	ldx	#intscrn
 	ldy	#TXTBASE
 intsclp	lda	,x+
@@ -908,6 +943,11 @@ intsclp	lda	,x+
 intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	intrext
+	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	intext1
 
 	ifdef MON09
 	jsr	chkuart
@@ -970,6 +1010,16 @@ intstox	andcc	#$fe
 intrext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	intrext
+	lda	gamflgs
+	ora	#GMFJYST
+	sta	gamflgs
+intext1	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	intext1
+	lda	#$ff
+	sta	PIA0D1
 
 	orcc	#$01
 	rts
@@ -1005,6 +1055,11 @@ inswai2	tst	PIA0D1		wait for vsync interrupt
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	insexit
+	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	insext1
 
 	decb
 	bne	inswai2
@@ -1012,6 +1067,16 @@ inswai2	tst	PIA0D1		wait for vsync interrupt
 insexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	insexit
+	lda	gamflgs
+	ora	#GMFJYST
+	sta	gamflgs
+insext1	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	insext1
+	lda	#$ff
+	sta	PIA0D1
 
 	rts
 
@@ -1020,6 +1085,8 @@ insexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 *
 talyscn	tst	PIA0D1		wait for vsync interrupt
 	sync
+
+	clr	gamflgs
 
 	jsr	clrtscn
 
@@ -1067,6 +1134,11 @@ tlywait	tst	PIA0D1		wait for vsync interrupt
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	tlyexit
+	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	tlyext1
 
 	dec	3,s
 	bne	tlywai2
@@ -1109,6 +1181,16 @@ tlytmox	andcc	#$fe
 tlyexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	tlyexit
+	lda	gamflgs
+	ora	#GMFJYST
+	sta	gamflgs
+tlyext1	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	beq	tlyext1
+	lda	#$ff
+	sta	PIA0D1
 
 	orcc	#$01
 	rts
@@ -1120,7 +1202,44 @@ tlyexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 *
 inpread	clrb
 
-	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	bne	.1?
+	orb	#INPUTBT
+.1?	lda	#$bf
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	bne	.2?
+	orb	#INPUTRT
+.2?	lda	#$df
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	bne	.3?
+	orb	#INPUTLT
+.3?	lda	#$ef
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	bne	.4?
+	orb	#INPUTDN
+.4?	lda	#$f7
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$08
+	bne	.5?
+	orb	#INPUTUP
+.5?	lda	#$ff
+	sta	PIA0D1
+
+	lda	#GMFJYST
+	bita	gamflgs
+	beq	inprdex
+
+inprdbt	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	bne	inprdrl
 	ldb	#INPUTBT
