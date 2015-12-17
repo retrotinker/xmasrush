@@ -72,10 +72,10 @@ START	equ	(VBASE+VEXTNT)
 	ora	#$04
 	sta	PIA1C0
 
-	ldb	PIA0C0		disable hsync interrupt generation
-	andb	#$fc
-	stb	PIA0C0
-	tst	PIA0D0
+	lda	PIA0C0		disable hsync interrupt generation
+	anda	#$fc
+	sta	PIA0C0
+	tst	PIA0D0		clear any pending hsync interrupts
 	lda	PIA0C1		enable vsync interrupt generation
 	ora	#$01
 	sta	PIA0C1
