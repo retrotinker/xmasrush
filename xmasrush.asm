@@ -1669,12 +1669,12 @@ exit 	equ	*
 	ifdef MON09
 	jmp	[$fffe]		Reset!
 	else
+	jsr	clrtscn		clear text screen
 	jsr	rstpias		restore PIA configuration
 	lda	savecc		reenable any interrupts
 	pshs	a
 	puls	cc
 	lds	savestk		restore stack pointer
-	jsr	clrtscn		clear text screen
 	rts			return to RSDOS
 	endif
 
