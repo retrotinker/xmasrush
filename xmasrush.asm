@@ -13,6 +13,7 @@ PIA1C0	equ	$ff21
 PIA1D1	equ	$ff22
 PIA1C1	equ	$ff23
 
+SQWAVE	equ	$02
 SEROUT	equ	$02
 
 INPUTRT	equ	$01		input bit flag definitions
@@ -71,6 +72,15 @@ START	equ	(VBASE+VEXTNT)
 	stb	PIA1D0
 	ora	#$04
 	sta	PIA1C0
+
+	lda	PIA1C1		enable square wave output
+	anda	#$fb
+	sta	PIA1C1
+	ldb	PIA1D1
+	orb	#SQWAVE
+	stb	PIA1D1
+	ora	#$04
+	sta	PIA1C1
 
 	lda	PIA0C0		disable hsync interrupt generation
 	anda	#$fc
@@ -182,6 +192,10 @@ vblank	tst	PIA0D1		wait for vsync interrupt
 
 	lda	#$08		restore CSS for BCMO colors
 	ora	PIA1D1
+	sta	PIA1D1
+
+	lda	PIA1D1		clear audio indication of movement attempt
+	anda	#(~SQWAVE)
 	sta	PIA1D1
 
 	jsr	vbswtch
@@ -320,6 +334,10 @@ vcalc0	jsr	inpread		read player input for next frame
 
 	lda	#MVDLRST	reset movement delay counter
 	sta	mvdlcnt
+
+	lda	PIA1D1		audio indication of movement attempt
+	ora	#SQWAVE
+	sta	PIA1D1
 
 	ldb	inpflgs		test for movement right
 	andb	#INPUTRT
