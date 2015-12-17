@@ -902,18 +902,7 @@ intsclp	lda	,x+
 	cmpx	#(intscrn+512)
 	blt	intsclp
 
-	clr	$ffc0		clr v0
-	clr	$ffc2		clr v1
-	clr	$ffc4		clr v2
-	clr	PIA1D1		setup vdg
-
-	clr	$ffc6		set video base to $0400
-	clr	$ffc9
-	clr	$ffca
-	clr	$ffcc
-	clr	$ffce
-	clr	$ffd0
-	clr	$ffd2
+	jsr	txtinit
 
 	ldb	#$20
 intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
@@ -1066,18 +1055,7 @@ talyscn	tst	PIA0D1		wait for vsync interrupt
 	ldy	#BRSTBAS
 	jsr	drawstr
 
-	clr	$ffc0		clr v0
-	clr	$ffc2		clr v1
-	clr	$ffc4		clr v2
-	clr	PIA1D1		setup vdg
-
-	clr	$ffc6		set video base to $0400
-	clr	$ffc9
-	clr	$ffca
-	clr	$ffcc
-	clr	$ffce
-	clr	$ffd0
-	clr	$ffd2
+	jsr	txtinit
 
 tlywait	tst	PIA0D1		wait for vsync interrupt
 	sync
@@ -1194,6 +1172,24 @@ inprddn	orb	#INPUTDN	joystick points down
 inprdup	orb	#INPUTUP	joystick points up
 
 inprdex	stb	inpflgs
+	rts
+
+*
+* txtinit -- setup text screen
+*
+txtinit	clr	$ffc0		clr v0
+	clr	$ffc2		clr v1
+	clr	$ffc4		clr v2
+	clr	PIA1D1		setup vdg
+
+	clr	$ffc6		set video base to $0400
+	clr	$ffc9
+	clr	$ffca
+	clr	$ffcc
+	clr	$ffce
+	clr	$ffd0
+	clr	$ffd2
+
 	rts
 
 *
