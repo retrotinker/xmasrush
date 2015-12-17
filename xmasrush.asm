@@ -13,6 +13,8 @@ PIA1C0	equ	$ff21
 PIA1D1	equ	$ff22
 PIA1C1	equ	$ff23
 
+SEROUT	equ	$02
+
 INPUTRT	equ	$01		input bit flag definitions
 INPUTLT	equ	$02
 INPUTUP	equ	$04
@@ -61,13 +63,12 @@ START	equ	(VBASE+VEXTNT)
 
 	orcc	#$50		disable IRQ and FIRQ
 
-	lda	PIA1C0
+	lda	PIA1C0		disable serial port output
 	anda	#$fb
 	sta	PIA1C0
-	lda	PIA1D0
-	anda	#$fd
-	sta	PIA1D0
-	lda	PIA1C0
+	ldb	PIA1D0
+	andb	#(~SEROUT)
+	stb	PIA1D0
 	ora	#$04
 	sta	PIA1C0
 
