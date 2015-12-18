@@ -58,6 +58,9 @@ BRSTBAS	equ	(TXTBASE+10*32+8)
 ENSTBAS	equ	(TXTBASE+13*32+3)
 SHSTBAS	equ	(TXTBASE+14*32+1)
 
+JS1BASE	equ	(TXTBASE+6*32+1)
+JS2BASE	equ	(TXTBASE+8*32+5)
+
 PLAYPOS	equ	(TXTBASE+(10*32)+24)
 
 START	equ	(VBASE+VEXTNT)
@@ -133,7 +136,10 @@ restart	ldd	#$0400		show intro screen
 restrt1	lda	atmpcnt		bump attempts counter
 	adda	#$01
 	daa
-	sta	atmpcnt
+	bcc	.1?
+	jsr	jokescn
+	bra	restart
+.1?	sta	atmpcnt
 
 	jsr	instscn		show istruction screen
 
@@ -1172,6 +1178,57 @@ intext1	lda	#$7f		test for spacebar press
 	rts
 
 *
+* Chide player into resetting statistics
+*
+jokescn	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	jsr	clrtscn
+
+	ldx	#jokstr1
+	ldy	#JS1BASE
+	jsr	drawstr
+
+	ldx	#jokstr2
+	ldy	#JS2BASE
+	jsr	drawstr
+
+jkswait	ldb	#$80
+jkswai2	tst	PIA0D1		wait for vsync interrupt
+	sync
+
+	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	jksexit
+	lda	#$7f		test for spacebar press
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	keymask
+	beq	jksext1
+
+	decb
+	bne	jkswai2
+
+jksexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
+	bita	#$02		test for left joystick button press
+	beq	jksexit
+	lda	gamflgs
+	ora	#GMFJYST
+	sta	gamflgs
+jksext1	lda	#$7f		test for spacebar press
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	keymask
+	beq	jksext1
+	lda	#$ff
+	sta	PIA0D1
+
+	lda	#$99
+	sta	atmpcnt
+
+	rts
+
+*
 * Show instructions
 *
 instscn	tst	PIA0D1		wait for vsync interrupt
@@ -2098,6 +2155,15 @@ plyfmap	fcb	10101010b,10101010b,10101010b,10101010b
 plyfmsz	equ	(*-plyfmap)
 
 ersptrs	fdb	ersary0,ersary1
+
+*
+* Joke screen data
+*
+jokstr1	fcb	$39,$39,$20,$14,$12,$09,$05,$13,$20,$09,$13,$20,$05,$0e,$0f,$15
+	fcb	$07,$08,$20,$06,$0f,$12,$20,$01,$0e,$19,$0f,$0e,$05,$21,$00
+
+jokstr2	fcb	$14,$09,$0d,$05,$20,$06,$0f,$12,$20,$01,$20,$0e,$05,$17,$20,$10
+	fcb	$0c,$01,$19,$05,$12,$3f,$00
 
 *
 * Intro screen data
