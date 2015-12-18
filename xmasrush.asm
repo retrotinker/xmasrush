@@ -197,10 +197,6 @@ vblank	tst	PIA0D1		wait for vsync interrupt
 	ora	PIA1D1
 	sta	PIA1D1
 
-	lda	PIA1D1		clear audio indication of movement attempt
-	anda	#(~SQWAVE)
-	sta	PIA1D1
-
 	jsr	vbswtch
 
 verase	lsla			convert to pointer offset
@@ -335,9 +331,23 @@ vcalc0	jsr	inpread		read player input for next frame
 	lda	#MVDLRST	reset movement delay counter
 	sta	mvdlcnt
 
-	lda	PIA1D1		audio indication of movement attempt
-	ora	#SQWAVE
+	lda	#$04
+	pshs	a
+	pshs	a
+.1?	tst	PIA0C0		wait for hsync interrupt
+	bpl	.1?
+	tst	PIA0D0
+	dec	,s
+	bne	.1?
+	lda	#$04
+	sta	,s
+	jsr	lfsrget
+	anda	#SQWAVE
+	eora	PIA1D1
 	sta	PIA1D1
+	dec	1,s
+	bne	.1?
+	leas	2,s
 
 	ldb	inpflgs		test for movement right
 	andb	#INPUTRT
