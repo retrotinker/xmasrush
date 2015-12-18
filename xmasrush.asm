@@ -16,6 +16,9 @@ PIA1C1	equ	$ff23
 SQWAVE	equ	$02
 SEROUT	equ	$02
 
+KYMSKCC	equ	$08
+KYMSKDG	equ	$20
+
 INPUTRT	equ	$01		input bit flag definitions
 INPUTLT	equ	$02
 INPUTUP	equ	$04
@@ -101,6 +104,9 @@ lfsrini	stb	TIMVAL+1
 	clr	atmpcnt		clear results tallies
 	clr	seizcnt
 	clr	escpcnt
+
+	lda	#KYMSKCC	setup default keyboard mask
+	sta	keymask
 
 restart	ldd	#$0400		show intro screen
 	pshs	d
@@ -472,10 +478,10 @@ winwait	tst	PIA0C0		wait for hsync interrupt
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	winexit
-	lda	#$7f
+	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	winext1
 
 	decb
@@ -487,10 +493,10 @@ winexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	lda	gamflgs
 	ora	#GMFJYST
 	sta	gamflgs
-winext1	lda	#$7f
+winext1	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	winext1
 	lda	#$ff
 	sta	PIA0D1
@@ -535,10 +541,10 @@ losswai	tst	PIA0C0		wait for hsync interrupt
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	lossext
-	lda	#$7f
+	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	losext1
 
 	decb
@@ -550,10 +556,10 @@ lossext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	lda	gamflgs
 	ora	#GMFJYST
 	sta	gamflgs
-losext1	lda	#$7f
+losext1	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	losext1
 	lda	#$ff
 	sta	PIA0D1
@@ -1000,10 +1006,10 @@ intsclp	lda	,x+
 intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	intrext
-	lda	#$7f
+	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	intext1
 
 	ifdef MON09
@@ -1070,10 +1076,10 @@ intrext	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	lda	gamflgs
 	ora	#GMFJYST
 	sta	gamflgs
-intext1	lda	#$7f
+intext1	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	intext1
 	lda	#$ff
 	sta	PIA0D1
@@ -1112,10 +1118,10 @@ inswai2	tst	PIA0D1		wait for vsync interrupt
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	insexit
-	lda	#$7f
+	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	insext1
 
 	decb
@@ -1127,10 +1133,10 @@ insexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	lda	gamflgs
 	ora	#GMFJYST
 	sta	gamflgs
-insext1	lda	#$7f
+insext1	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	insext1
 	lda	#$ff
 	sta	PIA0D1
@@ -1191,10 +1197,10 @@ tlywait	tst	PIA0D1		wait for vsync interrupt
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
 	beq	tlyexit
-	lda	#$7f
+	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	tlyext1
 
 	dec	3,s
@@ -1241,10 +1247,10 @@ tlyexit	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	lda	gamflgs
 	ora	#GMFJYST
 	sta	gamflgs
-tlyext1	lda	#$7f
+tlyext1	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	beq	tlyext1
 	lda	#$ff
 	sta	PIA0D1
@@ -1262,31 +1268,31 @@ inpread	clrb
 	lda	#$7f
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	bne	.1?
 	orb	#INPUTBT
 .1?	lda	#$bf
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	bne	.2?
 	orb	#INPUTRT
 .2?	lda	#$df
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	bne	.3?
 	orb	#INPUTLT
 .3?	lda	#$ef
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	bne	.4?
 	orb	#INPUTDN
 .4?	lda	#$f7
 	sta	PIA0D1
 	lda	PIA0D0
-	anda	#$08
+	anda	keymask
 	bne	.5?
 	orb	#INPUTUP
 .5?	lda	#$ff
@@ -1978,6 +1984,8 @@ brkstr	fcb	$42,$52,$45,$41,$4b,$20,$14,$0f,$20,$05,$0e,$04,$20,$07,$01,$0d
 savestk	rmb	2
 savecc	rmb	1
 savpdat	rmb	12
+
+keymask	rmb	1
 
 vfield	rmb	1
 
