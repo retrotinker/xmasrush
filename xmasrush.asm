@@ -423,9 +423,22 @@ win	lda	seizcnt		bump seizure and escape counts
 
 	jsr	vbswtch
 
-	ldb	#$80
-winwait	tst	PIA0D1		wait for vsync interrupt
-	sync
+	ldb	#$18
+	lda	#$10
+	pshs	a
+winwait	tst	PIA0C0		wait for hsync interrupt
+	bpl	.1?
+	tst	PIA0D0
+	dec	,s
+	bne	.1?
+	lda	#$10
+	sta	,s
+	lda	PIA1D1		toggle audio output bit
+	eora	#SQWAVE
+	sta	PIA1D1
+.1?	tst	PIA0C1		wait for vsync interrupt
+	bpl	winwait
+	tst	PIA0D1
 
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
@@ -453,6 +466,8 @@ winext1	lda	#$7f
 	lda	#$ff
 	sta	PIA0D1
 
+	leas	1,s
+
 	ldd	#$0100
 	pshs	d
 	jsr	talyscn
@@ -473,9 +488,20 @@ loss	lda	#GMFXMTR	bump seizure count, if appropriate
 
 loss1	jsr	vbswtch
 
-	ldb	#$80
-losswai	tst	PIA0D1		wait for vsync interrupt
-	sync
+	ldb	#$18
+	clra
+	pshs	a
+losswai	tst	PIA0C0		wait for hsync interrupt
+	bpl	.1?
+	tst	PIA0D0
+	dec	,s
+	bne	.1?
+	lda	PIA1D1		toggle audio output bit
+	eora	#SQWAVE
+	sta	PIA1D1
+.1?	tst	PIA0C1		wait for vsync interrupt
+	bpl	losswai
+	tst	PIA0D1
 
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
@@ -502,6 +528,8 @@ losext1	lda	#$7f
 	beq	losext1
 	lda	#$ff
 	sta	PIA0D1
+
+	leas	1,s
 
 	ldd	#$0100
 	pshs	d
