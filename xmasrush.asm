@@ -1015,12 +1015,12 @@ intsclp	lda	,x+
 	ldb	#$20
 intstlp	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
-	beq	intrext
+	lbeq	intrext
 	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
 	anda	keymask
-	beq	intext1
+	lbeq	intext1
 
 	ifdef MON09
 	jsr	chkuart
@@ -1045,7 +1045,7 @@ intstl1	lda	b,x
 intstl2	dec	3,s
 	bne	intstl3
 	lda	2,s
-	beq	intstox
+	lbeq	intstox
 	deca
 	sta	2,s
 
@@ -1073,9 +1073,39 @@ intstl4	lda	#$fb
 	sta	PIA0D1
 	puls	a
 	anda	#$40
-	bne	intstlp
+	bne	intstl5
 
 	jmp	exit
+
+intstl5	lda	#$fe
+	sta	PIA0D1
+	lda	PIA0D0
+	pshs	a
+	lda	#$ff
+	sta	PIA0D1
+	puls	a
+	anda	#$40
+	lbne	intstlp
+
+	lda	mvdlrst
+	cmpa	#MVDLR60
+	bne	.1?
+	lda	#MVDLR50
+	sta	mvdlrst
+	lda	#SNMDR50
+	sta	snmdrst
+	bra	.2?
+.1?	lda	#MVDLR60
+	sta	mvdlrst
+	lda	#SNMDR60
+	sta	snmdrst
+.2?	lda	#$fe
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	beq	.2?
+	lda	#$ff
+	sta	PIA0D1
 
 intstox	andcc	#$fe
 	rts
@@ -1236,17 +1266,17 @@ tlywait	tst	PIA0D1		wait for vsync interrupt
 
 	lda	PIA0D0		read from the PIA connected to the joystick buttons
 	bita	#$02		test for left joystick button press
-	beq	tlyexit
+	lbeq	tlyexit
 	lda	#$7f		test for spacebar press
 	sta	PIA0D1
 	lda	PIA0D0
 	anda	keymask
-	beq	tlyext1
+	lbeq	tlyext1
 
 	dec	3,s
 	bne	tlywai2
 	lda	2,s
-	beq	tlytmox
+	lbeq	tlytmox
 	deca
 	sta	2,s
 
@@ -1274,9 +1304,40 @@ tlywai3	lda	#$fb
 	sta	PIA0D1
 	puls	a
 	anda	#$40
-	bne	tlywait
+	bne	tlywai4
 
 	jmp	exit
+
+tlywai4	lda	#$fe
+	sta	PIA0D1
+	lda	PIA0D0
+	pshs	a
+	lda	#$ff
+	sta	PIA0D1
+	puls	a
+	anda	#$40
+	bne	tlywait
+
+	lda	mvdlrst
+	cmpa	#MVDLR60
+	bne	.1?
+	lda	#MVDLR50
+	sta	mvdlrst
+	lda	#SNMDR50
+	sta	snmdrst
+	bra	.2?
+.1?	lda	#MVDLR60
+	sta	mvdlrst
+	lda	#SNMDR60
+	sta	snmdrst
+.2?	lda	#$fe
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	beq	.2?
+	lda	#$ff
+	sta	PIA0D1
+	lbra	talyscn
 
 tlytmox	andcc	#$fe
 	rts
