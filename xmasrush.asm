@@ -52,7 +52,7 @@ IS4BASE	equ	(TXTBASE+10*32+10)
 
 ATSTBAS	equ	(TXTBASE+2*32+10)
 SZSTBAS	equ	(TXTBASE+4*32+10)
-ESSTBAS	equ	(TXTBASE+6*32+10)
+ESSTBAS	equ	(TXTBASE+6*32+11)
 CLSTBAS	equ	(TXTBASE+9*32+6)
 BRSTBAS	equ	(TXTBASE+10*32+8)
 ENSTBAS	equ	(TXTBASE+13*32+3)
@@ -1314,7 +1314,7 @@ talyscn	tst	PIA0D1		wait for vsync interrupt
 	ldy	#ESSTBAS
 	jsr	drawstr
 
-	leay	3,y
+	leay	2,y
 	lda	escpcnt
 	jsr	bcdshow
 
