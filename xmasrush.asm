@@ -408,9 +408,28 @@ vcalc8	ldd	playpos		check for player collision w/ xmas tree
 	bcc	vcalc13
 
 	lda	#GMFXMTR	if so, turn-off game flag for xmas tree
+	bita	gamflgs
+	beq	vcalc13
 	coma
 	anda	gamflgs
 	sta	gamflgs
+
+	lda	#$40		play short "beep" as audio indicator
+	pshs	a
+	pshs	a
+.1?	tst	PIA0C0		wait for hsync interrupt
+	bpl	.1?
+	tst	PIA0D0
+	dec	,s
+	bne	.1?
+	lda	#$04
+	sta	,s
+	lda	PIA1D1		toggle audio output bit
+	eora	#SQWAVE
+	sta	PIA1D1
+	dec	1,s
+	bne	.1?
+	leas	2,s
 
 vcalc13	leas	2,s
 
