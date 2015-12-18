@@ -449,6 +449,24 @@ vcalc8	ldd	playpos		check for player collision w/ xmas tree
 
 vcalc13	leas	2,s
 
+	lda	#$fb		lose current game if BREAK is pressed
+	sta	PIA0D1
+	lda	PIA0D0
+	pshs	a
+	lda	#$ff
+	sta	PIA0D1
+	puls	a
+	anda	#$40
+	lbne	vloop
+.1?	lda	#$fb
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	beq	.1?
+	lda	#$ff
+	sta	PIA0D1
+	lbra	loss
+
 vloop	equ	*		cycle the game loop
 
 	ifdef MON09
