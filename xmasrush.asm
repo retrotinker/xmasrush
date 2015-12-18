@@ -34,8 +34,11 @@ GMFSNW3	equ	$08
 GMFSNW4	equ	$10
 GMFJYST	equ	$20
 
-MVDLRST	equ	$08		reset value for movement delay counter
-SNMDRST	equ	$10		reset value for snowman move delay counter
+MVDLR60	equ	$08		60Hz reset value for movement delay counter
+MVDLR50	equ	$07		50Hz reset value for movement delay counter
+
+SNMDR60	equ	$10		60Hz reset value for snowman move delay counter
+SNMDR50	equ	$0d		50Hz reset value for snowman move delay counter
 
 TXTBASE	equ	$0400		memory map-related definitions
 VBASE	equ	$0e00
@@ -108,6 +111,11 @@ lfsrini	stb	TIMVAL+1
 	lda	#KYMSKCC	setup default keyboard mask
 	sta	keymask
 
+	lda	#MVDLR60	setup default movement counts
+	sta	mvdlrst
+	lda	#SNMDR60
+	sta	snmdrst
+
 restart	ldd	#$0400		show intro screen
 	pshs	d
 	jsr	intro
@@ -171,7 +179,7 @@ restrt1	lda	atmpcnt		bump attempts counter
 	lda	#$01		preset movement delay counter
 	sta	mvdlcnt
 
-	lda	#SNMDRST	reset snowman movement delay counters
+	lda	snmdrst		reset snowman movement delay counters
 	sta	sn1mcnt
 	sta	sn2mcnt
 	sta	sn3mcnt
@@ -334,7 +342,7 @@ vcalc0	jsr	inpread		read player input for next frame
 	dec	mvdlcnt		decrement movement delay counter
 	bne	vcalc4
 
-	lda	#MVDLRST	reset movement delay counter
+	lda	mvdlrst		reset movement delay counter
 	sta	mvdlcnt
 
 	lda	#$04
@@ -581,7 +589,7 @@ losext1	lda	#$7f		test for spacebar press
 snw1mov	dec	sn1mcnt
 	lbne	snw1mvx
 
-	lda	#SNMDRST
+	lda	snmdrst
 	sta	sn1mcnt
 
 	lda	#GMFXMTR
@@ -689,7 +697,7 @@ snw1mvx	rts
 snw2mov	dec	sn2mcnt
 	lbne	snw2mvx
 
-	lda	#SNMDRST
+	lda	snmdrst
 	sta	sn2mcnt
 
 	ldd	snw2pos
@@ -774,7 +782,7 @@ snw2mvx	rts
 snw3mov	dec	sn3mcnt
 	lbne	snw3mvx
 
-	lda	#SNMDRST
+	lda	snmdrst
 	sta	sn3mcnt
 
 	lda	#GMFXMTR
@@ -876,7 +884,7 @@ snw3mvx	rts
 snw4mov	dec	sn4mcnt
 	lbne	snw4mvx
 
-	lda	#SNMDRST
+	lda	snmdrst
 	sta	sn4mcnt
 
 	lda	#GMFXMTR
@@ -1986,6 +1994,9 @@ savecc	rmb	1
 savpdat	rmb	12
 
 keymask	rmb	1
+
+mvdlrst	rmb	1
+snmdrst	rmb	1
 
 vfield	rmb	1
 
