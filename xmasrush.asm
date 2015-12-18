@@ -1063,7 +1063,7 @@ intstl3	lda	#$fd
 	clr	seizcnt
 	clr	escpcnt
 
-	bra	intstox	
+	lbra	intstox
 
 intstl4	lda	#$fb
 	sta	PIA0D1
@@ -1085,7 +1085,7 @@ intstl5	lda	#$fe
 	sta	PIA0D1
 	puls	a
 	anda	#$40
-	lbne	intstlp
+	lbne	intstl6
 
 	lda	mvdlrst
 	cmpa	#MVDLR60
@@ -1100,6 +1100,32 @@ intstl5	lda	#$fe
 	lda	#SNMDR60
 	sta	snmdrst
 .2?	lda	#$fe
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	beq	.2?
+	lda	#$ff
+	sta	PIA0D1
+
+intstl6	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	pshs	a
+	lda	#$ff
+	sta	PIA0D1
+	puls	a
+	anda	#$40
+	lbne	intstlp
+
+	lda	keymask
+	cmpa	#KYMSKCC
+	bne	.1?
+	lda	#KYMSKDG
+	sta	keymask
+	bra	.2?
+.1?	lda	#KYMSKCC
+	sta	keymask
+.2?	lda	#$7f
 	sta	PIA0D1
 	lda	PIA0D0
 	anda	#$40
@@ -1316,7 +1342,7 @@ tlywai4	lda	#$fe
 	sta	PIA0D1
 	puls	a
 	anda	#$40
-	bne	tlywait
+	bne	tlywai5
 
 	lda	mvdlrst
 	cmpa	#MVDLR60
@@ -1331,6 +1357,33 @@ tlywai4	lda	#$fe
 	lda	#SNMDR60
 	sta	snmdrst
 .2?	lda	#$fe
+	sta	PIA0D1
+	lda	PIA0D0
+	anda	#$40
+	beq	.2?
+	lda	#$ff
+	sta	PIA0D1
+	lbra	talyscn
+
+tlywai5	lda	#$7f
+	sta	PIA0D1
+	lda	PIA0D0
+	pshs	a
+	lda	#$ff
+	sta	PIA0D1
+	puls	a
+	anda	#$40
+	lbne	tlywait
+
+	lda	keymask
+	cmpa	#KYMSKCC
+	bne	.1?
+	lda	#KYMSKDG
+	sta	keymask
+	bra	.2?
+.1?	lda	#KYMSKCC
+	sta	keymask
+.2?	lda	#$7f
 	sta	PIA0D1
 	lda	PIA0D0
 	anda	#$40
