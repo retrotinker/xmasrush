@@ -50,11 +50,13 @@ IS2BASE	equ	(TXTBASE+6*32+3)
 IS3BASE	equ	(TXTBASE+7*32+3)
 IS4BASE	equ	(TXTBASE+10*32+10)
 
-ATSTBAS	equ	(TXTBASE+4*32+10)
-SZSTBAS	equ	(TXTBASE+6*32+10)
-ESSTBAS	equ	(TXTBASE+8*32+10)
-CLSTBAS	equ	(TXTBASE+13*32+6)
-BRSTBAS	equ	(TXTBASE+14*32+8)
+ATSTBAS	equ	(TXTBASE+2*32+10)
+SZSTBAS	equ	(TXTBASE+4*32+10)
+ESSTBAS	equ	(TXTBASE+6*32+10)
+CLSTBAS	equ	(TXTBASE+9*32+6)
+BRSTBAS	equ	(TXTBASE+10*32+8)
+ENSTBAS	equ	(TXTBASE+13*32+3)
+SHSTBAS	equ	(TXTBASE+14*32+1)
 
 PLAYPOS	equ	(TXTBASE+(10*32)+24)
 
@@ -1193,6 +1195,36 @@ talyscn	tst	PIA0D1		wait for vsync interrupt
 	ldy	#BRSTBAS
 	jsr	drawstr
 
+	ldx	#entrstr
+	ldy	#ENSTBAS
+	jsr	drawstr
+
+	leay	1,y
+	lda	mvdlrst
+	cmpa	#MVDLR50
+	bne	.1?
+	ldx	#tm50str
+	bra	.2?
+.1?	ldx	#tm60str
+.2?	jsr	drawstr
+
+	ldx	#shftstr
+	ldy	#SHSTBAS
+	lda	keymask
+	cmpa	#KYMSKCC
+	bne	.1?
+	leay	1,y
+.1?	jsr	drawstr
+
+	leay	1,y
+	lda	keymask
+	cmpa	#KYMSKCC
+	bne	.1?
+	ldx	#cocostr
+	bra	.2?
+.1?	ldx	#drgnstr
+.2?	jsr	drawstr
+
 	jsr	txtinit
 
 tlywait	tst	PIA0D1		wait for vsync interrupt
@@ -1979,6 +2011,18 @@ atmpstr	fcb	$01,$14,$14,$05,$0d,$10,$14,$13,$00
 seizstr	fcb	$13,$05,$09,$1a,$15,$12,$05,$13,$00
 
 escpstr	fcb	$05,$13,$03,$01,$10,$05,$13,$00
+
+entrstr	fcb	$45,$4e,$54,$45,$52,$20,$03,$08,$01,$0e,$07,$05,$13,$20,$14,$09
+	fcb	$0d,$09,$0e,$07,$3a,$00
+
+tm50str	fcb	$35,$30,$08,$1a,$00
+tm60str	fcb	$36,$30,$08,$1a,$00
+
+shftstr	fcb	$53,$48,$49,$46,$54,$20,$03,$08,$01,$0e,$07,$05,$13,$20,$0b,$05
+	fcb	$19,$02,$0f,$01,$12,$04,$3a,$00
+
+cocostr	fcb	$03,$0f,$03,$0f,$00
+drgnstr	fcb	$04,$12,$01,$07,$0f,$0e,$00
 
 clrstr	fcb	$43,$4c,$45,$41,$52,$20,$06,$0f,$12,$20,$0e,$05,$17,$20,$10,$0c
 	fcb	$01,$19,$05,$12,$00
