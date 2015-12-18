@@ -2,8 +2,8 @@
 
 CFLAGS=-Wall
 
-TARGETS=xmasrush.bin xmasrush.dsk xmasrush.s19
-EXTRA=xmasrush.2k xmasrush.4k
+TARGETS=xmasrush.bin xmasrush.wav xmasrush.dsk xmasrush.s19
+EXTRA=xmasrush.4k xmasrush.8k
 
 all: $(TARGETS)
 
@@ -27,13 +27,13 @@ xmasrush.dsk: xmasrush.bin COPYING
 	decb copy -2 -b $< $@,$$(echo $< | tr [:lower:] [:upper:])
 	decb copy -3 -a -l COPYING $@,COPYING
 
-xmasrush.2k: xmasrush.ccc
+xmasrush.4k: xmasrush.ccc
 	rm -f $@
 	dd if=/dev/zero bs=2k count=1 | \
 		tr '\000' '\377' > $@
 	dd if=$< of=$@ conv=notrunc
 
-xmasrush.4k: xmasrush.2k
+xmasrush.8k: xmasrush.4k
 	cat $< > $@
 	cat $< >> $@
 
